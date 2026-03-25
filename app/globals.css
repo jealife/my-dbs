@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+}
+
+@layer base {
+  :root {
+    /* ============================================ */
+    /* MyDBS Brand Colors                           */
+    /* #FFC30E → golden primary                     */
+    /* #301D00 → dark brown (sidebar/header)        */
+    /* #4D3208 → medium brown (secondary)           */
+    /* ============================================ */
+
+    /* Background: warm off-white for light mode */
+    --background: 40 30% 97%;
+    --foreground: 30 80% 8%; /* #301D00 dark brown */
+
+    --card: 0 0% 100%;
+    --card-foreground: 30 80% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 80% 8%;
+
+    /* Primary: #FFC30E golden yellow — HSL(44, 100%, 53%) */
+    --primary: 44 100% 53%;
+    --primary-foreground: 30 80% 8%; /* Dark text on golden bg */
+
+    /* Secondary: #4D3208 medium brown — HSL(33, 85%, 17%) */
+    --secondary: 33 70% 92%;
+    --secondary-foreground: 33 85% 17%;
+
+    --muted: 40 30% 94%;
+    --muted-foreground: 33 25% 40%;
+
+    --accent: 44 100% 95%;
+    --accent-foreground: 33 85% 17%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 20% 88%;
+    --input: 40 20% 88%;
+    --ring: 44 100% 53%;
+
+    --radius: 0.75rem;
+
+    /* Glassmorphism Variables Light */
+    --glass-background: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(255, 195, 14, 0.15);
+    --glass-shadow: 0 10px 40px -10px rgba(48, 29, 0, 0.08), 0 0 20px -5px rgba(255, 195, 14, 0.05);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-[hsl(var(--border))];
+    transition-property: background-color, border-color, text-color, fill, stroke, opacity, box-shadow, transform;
+    transition-duration: 200ms;
+  }
+  body {
+    @apply bg-(--background) text-(--foreground) min-h-screen overflow-x-hidden;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply backdrop-blur-md bg-(--glass-background) border border-(--glass-border) rounded-2xl ring-1 ring-black/5;
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-navbar {
+    @apply backdrop-blur-lg border-b border-(--glass-border);
+    background-color: var(--glass-background);
+  }
+
+  /* Premium gradient: golden #FFC30E → warm amber */
+  .premium-gradient {
+    background: linear-gradient(135deg, #FFC30E 0%, #e8a800 50%, #4D3208 100%);
+  }
+
+  .glow-mesh {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* Glow: golden tint top-left */
+  .glow-1 {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255, 195, 14, 0.12) 0%, rgba(255, 195, 14, 0) 70%);
+    top: -200px;
+    left: -200px;
+    filter: blur(80px);
+    animation: pulse 10s infinite alternate;
+  }
+
+  /* Glow: brown tint bottom-right */
+  .glow-2 {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(77, 50, 8, 0.1) 0%, rgba(77, 50, 8, 0) 70%);
+    bottom: -150px;
+    right: -100px;
+    filter: blur(80px);
+    animation: pulse 15s infinite alternate-reverse;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1) translate(0, 0); }
+    100% { transform: scale(1.1) translate(100px, 50px); }
+  }
+}
+
