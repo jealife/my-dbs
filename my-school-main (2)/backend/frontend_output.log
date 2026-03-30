@@ -1,0 +1,557 @@
+
+> my-dbs@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.66:3000
+- Environments: .env.local
+✓ Ready in 768ms
+
+[Proxy] Path: /overview, Auth: true
+ GET /overview 200 in 1993ms (next.js: 685ms, proxy.ts: 257ms, application-code: 1050ms)
+[browser] Image with src "/logo-mydbs.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[browser] [MyDBS] Erreur notifications AxiosError: Network Error
+    at async Object.getNotifications (lib/user-service.js:313:24)
+    at async fetchNotifs (components/header.jsx:25:20)
+  311 |   async getNotifications(userId) {
+  312 |     try {
+> 313 |       const response = await apiClient.get(`/notifications/user/${userId}`);
+      |                        ^
+  314 |       return response.data?.data || [];
+  315 |     } catch (e) {
+  316 |       console.error("[MyDBS] Erreur notifications", e); (lib/user-service.js:316:15)
+[Proxy] Path: /logs, Auth: true
+ GET /logs 200 in 97ms (next.js: 42ms, proxy.ts: 10ms, application-code: 44ms)
+ GET /api-local-logs?lines=1000&type=backend 200 in 281ms (next.js: 218ms, application-code: 63ms)
+ GET /api-local-logs?lines=1000&type=backend 200 in 31ms (next.js: 7ms, application-code: 25ms)
+ GET /api-local-logs?lines=1000&type=backend 200 in 64ms (next.js: 13ms, application-code: 51ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 298ms (next.js: 4ms, application-code: 294ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 155ms (next.js: 3ms, application-code: 152ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 190ms (next.js: 3ms, application-code: 187ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 144ms (next.js: 5ms, application-code: 139ms)
+[Proxy] Path: /.well-known/appspecific/com.chrome.devtools.json, Auth: true
+[Proxy] Path: /manifest.webmanifest, Auth: false
+ GET /manifest.webmanifest 200 in 111ms (next.js: 66ms, proxy.ts: 16ms, application-code: 29ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 280ms (next.js: 6ms, application-code: 273ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 151ms (next.js: 4ms, application-code: 147ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 161ms (next.js: 12ms, application-code: 148ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 289ms (next.js: 2ms, application-code: 287ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 106ms (next.js: 2ms, application-code: 104ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 116ms (next.js: 3ms, application-code: 114ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 97ms (next.js: 4ms, application-code: 93ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 100ms (next.js: 2ms, application-code: 98ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 102ms (next.js: 1678µs, application-code: 100ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 99ms (next.js: 1992µs, application-code: 97ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 113ms (next.js: 4ms, application-code: 109ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 127ms (next.js: 1922µs, application-code: 125ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 136ms (next.js: 1788µs, application-code: 134ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 102ms (next.js: 3ms, application-code: 99ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 103ms (next.js: 2ms, application-code: 101ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 121ms (next.js: 2ms, application-code: 119ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 106ms (next.js: 2ms, application-code: 104ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 104ms (next.js: 3ms, application-code: 101ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 102ms (next.js: 3ms, application-code: 99ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 107ms (next.js: 3ms, application-code: 104ms)
+Erreur de lecture des logs: Error: Command failed: tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"
+tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory
+
+    at ignore-listed frames {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'tail -n 1000 "/Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log"',
+  stdout: '',
+  stderr: 'tail: /Users/JEaLiFe/Downloads/my-dbs-master/frontend_output.log: No such file or directory\n'
+}
+⨯ ReferenceError: type is not defined
+    at GET (app/api-local-logs/route.js:30:17)
+  28 |       error: err.message, 
+  29 |       success: false,
+> 30 |       fallback: type === 'frontend' 
+     |                 ^
+  31 |         ? "Impossible de lire frontend_output.log. Relancez Next.js avec : npm run dev > f...
+  32 |         : "Impossible de lire backend_output.log. Assurez-vous que le backend écrit dans c...
+  33 |     }, { status: 500 });
+ GET /api-local-logs?lines=1000&type=frontend 500 in 114ms (next.js: 2ms, application-code: 112ms)
+[?25h

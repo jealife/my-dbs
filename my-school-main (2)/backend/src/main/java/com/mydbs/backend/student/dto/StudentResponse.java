@@ -1,0 +1,61 @@
+package com.mydbs.backend.student.dto;
+
+import com.mydbs.backend.student.model.EnrollmentType;
+import com.mydbs.backend.student.model.StudentStatus;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+public record StudentResponse(
+        Long id,
+        String studentNumber,
+        String admissionNumber,
+        String registrationNumber,
+        String firstName,
+        String lastName,
+        String middleName,
+        String email,
+        String phoneNumber,
+        String secondaryPhoneNumber,
+        String gender,
+        String nationality,
+        String cityOfBirth,
+        String countryOfBirth,
+        LocalDate dateOfBirth,
+        String nationalIdNumber,
+        String passportNumber,
+        String addressLine,
+        String city,
+        String country,
+        String postalCode,
+        String photoUrl,
+        String medicalNotes,
+        String specialNeedsNotes,
+        LocalDate admissionDate,
+        LocalDate registrationDate,
+        LocalDate expectedGraduationDate,
+        boolean scholarshipHolder,
+        boolean internationalStudent,
+        boolean workingStudent,
+        StudentStatus status,
+        EnrollmentType enrollmentType,
+        Long userId,
+        String userEmail,
+        Long academicYearId,
+        String academicYearName,
+        Long programId,
+        String programName,
+        Long cohortId,
+        String cohortName,
+        Long classRoomId,
+        String classRoomName,
+        List<GuardianContactResponse> guardians,
+        List<EmergencyContactResponse> emergencyContacts,
+        List<StudentStatusHistoryResponse> statusHistory,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        String createdBy,
+        String updatedBy
+) {
+}
