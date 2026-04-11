@@ -21,7 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -80,7 +84,6 @@ public class GradesServiceImpl {
                     gb.setCohort(cohort);
                     gb.setSemester(semester);
                     gb.setCredits(course.getCredits());
-                    gb.setCoefficient(course.getCoefficient() != null ? course.getCoefficient() : 1.0);
                     return gradeBookRepository.save(gb);
                 });
 
@@ -126,7 +129,6 @@ public class GradesServiceImpl {
         item.setLabel(request.label());
         item.setScore(request.score());
         item.setMaxScore(request.maxScore() != null ? request.maxScore() : 20.0);
-        item.setCoefficient(request.coefficient() != null ? request.coefficient() : 1.0);
         item.setSemester(request.semester());
         item.setTeacherComment(request.teacherComment());
 
@@ -175,9 +177,12 @@ public class GradesServiceImpl {
         int creditsAcquired = 0, creditsPossible = 0;
 
         for (GradeBook gb : gradeBooks) {
-            if (gb.getWeightedAverage() != null && gb.getCoefficient() != null) {
-                numerator += gb.getWeightedAverage() * gb.getCoefficient();
-                denominator += gb.getCoefficient();
+            if (gb.getWeightedAverage() != null && gb.getCredits() != null && gb.getCredits() > 0) {
+                numerator += gb.getWeightedAverage() * gb.getCredits();
+                denominator += gb.getCredits();
+            } else if (gb.getWeightedAverage() != null) {
+                numerator += gb.getWeightedAverage();
+                denominator += 1.0;
             }
             if (gb.getCredits() != null) {
                 creditsPossible += gb.getCredits();
@@ -270,25 +275,26 @@ public class GradesServiceImpl {
     // ─────────────────────── PRIVATE HELPERS ─────────────────────────────
 
     /**
-     * Recalcule la moyenne pondérée d'un GradeBook et met à jour validated.
-     * Formule : Σ(score_normalisé_sur_20 × coefficient) / Σcoefficient
+     * Recalcule la moyenne d'un GradeBook (moyenne simple des notes ramenées sur 20).
+     * Dans le système LMD, les crédits pondèrent les cours entre eux ; au sein d'un cours
+     * toutes les évaluations ont le même poids.
      */
     private void recalculateGradeBook(GradeBook gradeBook) {
         List<GradeItem> items = gradeItemRepository
                 .findByGradeBookIdAndArchivedFalseOrderByCreatedAtDesc(gradeBook.getId());
 
-        double numerator = 0.0, denominator = 0.0;
+        double numerator = 0.0;
+        int count = 0;
         for (GradeItem item : items) {
             if (item.getScore() != null && item.getMaxScore() != null && item.getMaxScore() > 0) {
                 double scoreOn20 = (item.getScore() / item.getMaxScore()) * 20.0;
-                double coeff = item.getCoefficient() != null ? item.getCoefficient() : 1.0;
-                numerator += scoreOn20 * coeff;
-                denominator += coeff;
+                numerator += scoreOn20;
+                count++;
             }
         }
 
-        if (denominator > 0) {
-            double avg = Math.round((numerator / denominator) * 100.0) / 100.0;
+        if (count > 0) {
+            double avg = Math.round((numerator / count) * 100.0) / 100.0;
             gradeBook.setWeightedAverage(avg);
             gradeBook.setValidated(avg >= (gradeBook.getPassingGrade() != null ? gradeBook.getPassingGrade() : 10.0));
         } else {
@@ -361,18 +367,17 @@ public class GradesServiceImpl {
 
     private GradeItemResponse toGradeItemResponse(GradeItem item) {
         double maxScore = item.getMaxScore() != null && item.getMaxScore() > 0 ? item.getMaxScore() : 20.0;
-        double coeff = item.getCoefficient() != null ? item.getCoefficient() : 1.0;
         double scoreOn20 = Math.round((item.getScore() / maxScore) * 20.0 * 100.0) / 100.0;
-        double weightedScore = Math.round(scoreOn20 * coeff * 100.0) / 100.0;
         return new GradeItemResponse(
                 item.getId(), item.getGradeBook().getId(), item.getItemType(), item.getSourceId(),
-                item.getLabel(), item.getScore(), item.getMaxScore(), item.getCoefficient(),
-                scoreOn20, weightedScore,
+                item.getLabel(), item.getScore(), item.getMaxScore(),
+                scoreOn20,
                 item.getSemester(), item.getTeacherComment(), item.getCreatedAt()
         );
     }
 
     private GradeBookResponse toGradeBookResponse(GradeBook gb, List<GradeItem> items) {
+        var ue = gb.getCourse() != null ? gb.getCourse().getTeachingUnit() : null;
         return new GradeBookResponse(
                 gb.getId(),
                 gb.getStudent().getId(), gb.getStudent().getFirstName(), gb.getStudent().getLastName(),
@@ -380,10 +385,15 @@ public class GradesServiceImpl {
                 gb.getCourse().getId(), gb.getCourse().getTitle(), gb.getCourse().getCode(),
                 gb.getCourse().getCredits(),
                 gb.getAcademicYear().getId(), gb.getAcademicYear().getName(),
-                gb.getSemester(), gb.getWeightedAverage(), gb.getCoefficient(), gb.getCredits(),
+                gb.getSemester() != null ? gb.getSemester()
+                        : (gb.getCourse().getSemester() != null ? gb.getCourse().getSemester() : null),
+                gb.getWeightedAverage(), gb.getCredits(),
                 gb.isValidated(), gb.getPassingGrade(), gb.getTeacherAppreciation(),
                 items.stream().map(this::toGradeItemResponse).toList(),
-                gb.getCreatedAt()
+                gb.getCreatedAt(),
+                ue != null ? ue.getId() : null,
+                ue != null ? ue.getCode() : null,
+                ue != null ? ue.getName() : null
         );
     }
 
@@ -394,6 +404,9 @@ public class GradesServiceImpl {
                             .findByGradeBookIdAndArchivedFalseOrderByCreatedAtDesc(gb.getId());
                     return toGradeBookResponse(gb, items);
                 }).toList();
+
+        // Groupement LMD par UE
+        List<UeGradeGroupResponse> ueGroups = buildUeGroups(gbResponses);
 
         return new BulletinResponse(
                 b.getId(),
@@ -407,7 +420,49 @@ public class GradesServiceImpl {
                 b.getRankInCohort(), b.getTotalStudentsInCohort(),
                 b.getClassAverage(), b.getHighestAverage(), b.getLowestAverage(),
                 b.getHeadTeacherComment(), b.getCouncilDecision(), b.getPublishedAt(),
-                gbResponses, b.getCreatedAt()
+                gbResponses, ueGroups, b.getCreatedAt()
         );
+    }
+
+    /**
+     * Regroupe les GradeBookResponse par UE.
+     * Les cours sans UE sont regroupés sous un groupe "Sans UE".
+     */
+    private List<UeGradeGroupResponse> buildUeGroups(List<GradeBookResponse> gbResponses) {
+        // LinkedHashMap pour préserver l'ordre UE
+        Map<String, List<GradeBookResponse>> grouped = new LinkedHashMap<>();
+        Map<String, String[]> ueMeta = new LinkedHashMap<>(); // key → [ueId, ueCode, ueName, semester, orderIndex]
+
+        for (GradeBookResponse gb : gbResponses) {
+            String key;
+            if (gb.teachingUnitId() != null) {
+                key = "ue_" + gb.teachingUnitId();
+                ueMeta.put(key, new String[]{
+                        String.valueOf(gb.teachingUnitId()),
+                        gb.teachingUnitCode(),
+                        gb.teachingUnitName(),
+                        gb.semester() != null ? gb.semester() : "",
+                        "1"
+                });
+            } else {
+                key = "no_ue";
+                ueMeta.put(key, new String[]{"0", "", "Sans UE", gb.semester() != null ? gb.semester() : "", "99"});
+            }
+            grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(gb);
+        }
+
+        List<UeGradeGroupResponse> groups = new ArrayList<>();
+        for (Map.Entry<String, List<GradeBookResponse>> entry : grouped.entrySet()) {
+            String[] meta = ueMeta.get(entry.getKey());
+            Long ueId = Long.parseLong(meta[0]);
+            groups.add(new UeGradeGroupResponse(
+                    ueId == 0 ? null : ueId,
+                    meta[1], meta[2], meta[3],
+                    Integer.parseInt(meta[4]),
+                    entry.getValue()
+            ));
+        }
+        groups.sort(Comparator.comparingInt(UeGradeGroupResponse::ueOrderIndex));
+        return groups;
     }
 }

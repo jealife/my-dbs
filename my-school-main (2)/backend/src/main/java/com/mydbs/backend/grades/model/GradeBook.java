@@ -58,10 +58,6 @@ public class GradeBook extends BaseAuditEntity {
     @Column(name = "credits")
     private Integer credits;
 
-    /** Coefficient du cours dans le bulletin */
-    @Column(name = "coefficient")
-    private Double coefficient = 1.0;
-
     /** Cours validé (note >= seuil) */
     @Column(name = "validated", nullable = false)
     private boolean validated = false;
@@ -87,8 +83,6 @@ public class GradeBook extends BaseAuditEntity {
     public void setWeightedAverage(Double weightedAverage) { this.weightedAverage = weightedAverage; }
     public Integer getCredits() { return credits; }
     public void setCredits(Integer credits) { this.credits = credits; }
-    public Double getCoefficient() { return coefficient; }
-    public void setCoefficient(Double coefficient) { this.coefficient = coefficient; }
     public boolean isValidated() { return validated; }
     public void setValidated(boolean validated) { this.validated = validated; }
     public Double getPassingGrade() { return passingGrade; }

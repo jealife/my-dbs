@@ -21,9 +21,6 @@ public record CourseCreateRequest(
         @NotNull(message = "Les credits sont obligatoires")
         Integer credits,
 
-        @NotNull(message = "Le coefficient est obligatoire")
-        Double coefficient,
-
         @NotNull(message = "Le volume horaire est obligatoire")
         Integer totalHours,
 
@@ -36,6 +33,12 @@ public record CourseCreateRequest(
         Long classRoomId,
         Long instructorUserId,
         CourseStatus status,
-        CourseVisibility visibility
+        CourseVisibility visibility,
+
+        /** Semestre LMD : S1, S2, S3, S4, S5, S6 */
+        String semester,
+
+        /** Identifiant de l'UE parente (optionnel) */
+        Long teachingUnitId
 ) {
 }

@@ -224,15 +224,47 @@ export function StudentProfileView({ studentId }) {
                   </GlassCard>
                   <GlassCard className="p-6 bg-amber-500/5 ring-amber-500/20">
                     <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">Crédits ECTS</p>
-                    <div className="flex items-end gap-2 text-amber-600">
-                      <h3 className="text-4xl font-black italic tracking-tighter">42</h3>
-                      <span className="text-xs opacity-60 font-bold mb-1">/ 60</span>
-                    </div>
+                    {(() => {
+                      const totalEcts = gradeBooks.reduce((sum, b) => sum + (b.average >= 10 ? (b.ects || 0) : 0), 0)
+                      const maxEcts = gradeBooks.reduce((sum, b) => sum + (b.ects || 0), 0) || 60
+                      return (
+                        <div className="flex items-end gap-2 text-amber-600">
+                          <h3 className="text-4xl font-black italic tracking-tighter">{totalEcts}</h3>
+                          <span className="text-xs opacity-60 font-bold mb-1">/ {maxEcts}</span>
+                        </div>
+                      )
+                    })()}
                   </GlassCard>
                 </div>
 
-                <GlassCard title="Graphique de Performance" className="h-64 border-none ring-1 ring-(--glass-border) flex items-center justify-center italic opacity-30">
-                  Visualisation des données bientôt disponible...
+                <GlassCard title="Graphique de Performance" className="border-none ring-1 ring-(--glass-border)">
+                  {gradeBooks.length === 0 ? (
+                    <div className="h-48 flex items-center justify-center italic opacity-30 text-sm">Aucune note disponible pour afficher le graphique.</div>
+                  ) : (
+                    <div className="pt-4 space-y-3">
+                      {gradeBooks.slice(0, 8).map((book, i) => {
+                        const avg = book.average || 0
+                        const pct = Math.min(100, (avg / 20) * 100)
+                        const color = avg >= 14 ? 'bg-emerald-500' : avg >= 10 ? 'bg-indigo-500' : 'bg-rose-500'
+                        return (
+                          <div key={i} className="flex items-center gap-4">
+                            <p className="text-[10px] font-black uppercase tracking-tight opacity-50 w-28 truncate text-right">{book.courseName || `Cours #${book.courseId}`}</p>
+                            <div className="flex-1 h-3 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pct}%` }}
+                                transition={{ duration: 0.8, delay: i * 0.1 }}
+                                className={cn("h-full rounded-full shadow-sm", color)}
+                              />
+                            </div>
+                            <span className={cn("text-xs font-black italic w-10 text-right", avg >= 10 ? 'text-emerald-500' : 'text-rose-500')}>
+                              {avg.toFixed(1)}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </GlassCard>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

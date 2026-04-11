@@ -2,7 +2,9 @@
 
 import { useAdmissionDetail, useChangeAdmissionStatus } from '@/hooks/useAdmissions';
 import { ApplicationStatus } from '@/types/admissions';
+import { enrollmentService } from '@/lib/enrollment-service';
 import Link from 'next/link';
+
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeft, Check, X, Clock, FileText, User, GraduationCap } from 'lucide-react';
 
@@ -16,12 +18,22 @@ export default function AdmissionDetailPage() {
 
   const handleStatusChange = async (newStatus) => {
     if (confirm(`Êtes-vous sûr de vouloir changer le statut à ${newStatus} ?`)) {
-      await statusMutation.mutateAsync({
-        targetStatus: newStatus,
-        reason: 'Changement de statut via interface',
-      });
+      try {
+        const updated = await statusMutation.mutateAsync({
+          targetStatus: newStatus,
+          reason: 'Changement de statut via interface',
+        });
+
+        // Business Logic: Auto-assign class on Reception (PENDING_REVIEW) or Final Enrollment
+        if (newStatus === ApplicationStatus.PENDING_REVIEW || newStatus === ApplicationStatus.ENROLLED) {
+           await enrollmentService.processAdmissionClassAssignment(updated || application);
+        }
+      } catch (err) {
+        console.error("Status change failed:", err);
+      }
     }
   };
+
 
   if (isLoading) return <div className="p-8 font-bold animate-pulse text-slate-400">Chargement des données du candidat...</div>;
   if (error) return <div className="p-8 text-red-500 font-bold bg-red-50 rounded-xl">Erreur: Impossible de charger le dossier. {error.message}</div>;
@@ -107,25 +119,44 @@ export default function AdmissionDetailPage() {
 
             <div className="space-y-4">
               {application.status === ApplicationStatus.DRAFT && (
-                <button 
+                <button
                   onClick={() => handleStatusChange(ApplicationStatus.PENDING_REVIEW)}
                   disabled={statusMutation.isPending}
                   className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 font-bold transition-all text-sm disabled:opacity-50"
                 >
-                  <Clock className="w-4 h-4" /> Soumettre & Passer en révision
+                  <Clock className="w-4 h-4" /> Soumettre le dossier
                 </button>
               )}
-              
-              {(application.status === ApplicationStatus.PENDING_REVIEW || application.status === ApplicationStatus.UNDER_REVIEW) && (
+
+              {application.status === ApplicationStatus.PENDING_REVIEW && (
                 <>
-                  <button 
+                  <button
+                    onClick={() => handleStatusChange(ApplicationStatus.UNDER_REVIEW)}
+                    disabled={statusMutation.isPending}
+                    className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 font-bold transition-all text-sm disabled:opacity-50"
+                  >
+                    <Clock className="w-4 h-4" /> Prendre en charge (En révision)
+                  </button>
+                  <button
+                    onClick={() => handleStatusChange(ApplicationStatus.REJECTED)}
+                    disabled={statusMutation.isPending}
+                    className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 font-bold transition-all text-sm disabled:opacity-50"
+                  >
+                    <X className="w-4 h-4" /> Rejeter la candidature
+                  </button>
+                </>
+              )}
+
+              {application.status === ApplicationStatus.UNDER_REVIEW && (
+                <>
+                  <button
                     onClick={() => handleStatusChange(ApplicationStatus.VALIDATED)}
                     disabled={statusMutation.isPending}
                     className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-green-500 text-white hover:bg-green-600 font-bold transition-all text-sm shadow-lg shadow-green-500/30 disabled:opacity-50"
                   >
                     <Check className="w-4 h-4" /> Valider le dossier
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleStatusChange(ApplicationStatus.REJECTED)}
                     disabled={statusMutation.isPending}
                     className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 font-bold transition-all text-sm disabled:opacity-50"

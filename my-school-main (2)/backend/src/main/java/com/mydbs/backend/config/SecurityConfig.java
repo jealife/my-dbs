@@ -114,8 +114,7 @@ public class SecurityConfig {
                         .hasAnyAuthority("SUPER_ADMIN", "ADMIN", "PEDAGOGICAL_MANAGER", "SCHOOL_MANAGER", "SUPPORT")
 
                         // ── Admissions ────────────────────────────────────────────────
-                        .requestMatchers(HttpMethod.POST, "/api/v1/admissions")
-                        .hasAnyAuthority("SUPER_ADMIN", "ADMIN", "SCHOOL_MANAGER", "CANDIDATE")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admissions").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/v1/admissions/**")
                         .hasAnyAuthority("SUPER_ADMIN", "ADMIN", "SCHOOL_MANAGER", "PEDAGOGICAL_MANAGER", "CANDIDATE")
@@ -304,7 +303,8 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }

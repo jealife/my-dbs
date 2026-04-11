@@ -369,7 +369,7 @@ export function CareerModuleView() {
                                 </div>
                               </div>
                               <select
-                                value={app.status}
+                                value={app.status || ''}
                                 onChange={e => updateStatusMutation.mutate({ appId: app.id, status: e.target.value })}
                                 className="text-[10px] font-black uppercase px-2 py-1 rounded-lg bg-white dark:bg-slate-800 ring-1 ring-(--glass-border) outline-none"
                               >

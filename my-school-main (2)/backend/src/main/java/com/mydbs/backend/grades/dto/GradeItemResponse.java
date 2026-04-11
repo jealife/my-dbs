@@ -12,9 +12,7 @@ public record GradeItemResponse(
         String label,
         Double score,
         Double maxScore,
-        Double coefficient,
         Double scoreOn20,         // score normalisé sur 20
-        Double weightedScore,     // score × coefficient
         String semester,
         String teacherComment,
         LocalDateTime createdAt

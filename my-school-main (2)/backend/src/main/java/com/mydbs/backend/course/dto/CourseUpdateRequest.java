@@ -21,9 +21,6 @@ public record CourseUpdateRequest(
         @NotNull(message = "Les credits sont obligatoires")
         Integer credits,
 
-        @NotNull(message = "Le coefficient est obligatoire")
-        Double coefficient,
-
         @NotNull(message = "Le volume horaire est obligatoire")
         Integer totalHours,
 
@@ -40,6 +37,9 @@ public record CourseUpdateRequest(
         CourseStatus status,
 
         @NotNull(message = "La visibilite est obligatoire")
-        CourseVisibility visibility
+        CourseVisibility visibility,
+
+        String semester,
+        Long teachingUnitId
 ) {
 }

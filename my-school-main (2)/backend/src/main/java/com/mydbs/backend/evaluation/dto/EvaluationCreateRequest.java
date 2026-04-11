@@ -22,10 +22,6 @@ public record EvaluationCreateRequest(
 
         Double passingScore,
 
-        @NotNull(message = "Le coefficient est obligatoire")
-        @DecimalMin(value = "0.1", message = "Le coefficient doit être positif")
-        Double coefficient,
-
         Double weightPercentage,
 
         LocalDateTime scheduledAt,

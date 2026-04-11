@@ -80,5 +80,7 @@ export function useAcademic() {
 
     levelsError:        yearsQuery.error,
     sectorsError:       programsQuery.error,
+    students:           studentsQuery.data ?? [],
   }
 }
+

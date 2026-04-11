@@ -10,7 +10,6 @@ public record EvaluationSummaryResponse(
         EvaluationType evaluationType,
         com.mydbs.backend.evaluation.model.EvaluationStatus status,
         Double maxScore,
-        Double coefficient,
         LocalDateTime scheduledAt,
         String courseTitle,
         String courseCode,

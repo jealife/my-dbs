@@ -327,6 +327,7 @@ export function DocumentsModuleView() {
                 <thead>
                   <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-(--glass-border)">
                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest opacity-40 italic">Nom / Type</th>
+                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest opacity-40 italic hidden md:table-cell whitespace-nowrap">Propriétaire</th>
                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest opacity-40 italic hidden md:table-cell whitespace-nowrap">Date</th>
                     <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest opacity-40 italic text-right whitespace-nowrap w-px">Actions</th>
                   </tr>
@@ -349,16 +350,16 @@ export function DocumentsModuleView() {
                       </td>
                     </tr>
                   ) : filteredDocs.map((doc, i) => (
-                    <motion.tr key={doc.id || i}
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
-                      className="group hover:bg-primary/[0.02] transition-colors"
-                    >
-                      {/* Name column — flex min-w-0 so it shrinks instead of overflowing */}
-                      <td className="px-6 py-4 max-w-0">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base group-hover:scale-105 transition-transform flex-shrink-0">
-                            {DOC_TYPE_ICONS[doc.documentType] || '📁'}
-                          </div>
+                      <motion.tr key={doc.id || i}
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
+                        className="group hover:bg-primary/2 transition-colors"
+                      >
+                        {/* Name column — flex min-w-0 so it shrinks instead of overflowing */}
+                        <td className="px-6 py-4 max-w-0">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base group-hover:scale-105 transition-transform shrink-0">
+                              {DOC_TYPE_ICONS[doc.documentType] || '📁'}
+                            </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-[13px] font-bold truncate">
                               {doc.title || doc.fileName || doc.name || `Doc #${doc.id}`}
@@ -366,6 +367,27 @@ export function DocumentsModuleView() {
                             <p className="text-[10px] font-bold opacity-40 uppercase">{doc.documentType}</p>
                           </div>
                         </div>
+                      </td>
+                      {/* Owner column */}
+                      <td className="px-6 py-4 hidden md:table-cell whitespace-nowrap">
+                        {doc.owner ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                              {doc.owner.photoUrl ? (
+                                <img src={doc.owner.photoUrl} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-[10px] font-bold text-primary">
+                                  {doc.owner.firstName[0]}{doc.owner.lastName[0]}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] font-bold opacity-70">
+                              {doc.owner.firstName} {doc.owner.lastName}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] italic opacity-30">Inconnu</span>
+                        )}
                       </td>
                       {/* Date column */}
                       <td className="px-6 py-4 hidden md:table-cell whitespace-nowrap">
@@ -713,9 +735,15 @@ export function DocumentsModuleView() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-[10px] font-black uppercase tracking-widest">{entry.action}</span>
-                        <span className="text-[10px] opacity-40 shrink-0">{formatDateFr(entry.createdAt || entry.timestamp)}</span>
+                        <span className="text-[10px] opacity-40 shrink-0">{formatDateFr(entry.createdAt || entry.accessedAt || entry.timestamp)}</span>
                       </div>
-                      {entry.performedBy && <p className="text-[11px] opacity-60 mt-0.5">Par : {entry.performedBy}</p>}
+                      {entry.user ? (
+                        <p className="text-[11px] opacity-60 mt-0.5 font-bold">
+                          Par : {entry.user.firstName} {entry.user.lastName} <span className="opacity-40 text-[9px] uppercase tracking-tighter">({entry.user.role})</span>
+                        </p>
+                      ) : entry.performedBy ? (
+                        <p className="text-[11px] opacity-60 mt-0.5">Par : {entry.performedBy}</p>
+                      ) : null}
                       {entry.ipAddress  && <p className="text-[10px] opacity-40 font-mono">IP : {entry.ipAddress}</p>}
                     </div>
                   </div>

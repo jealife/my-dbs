@@ -31,6 +31,28 @@ public record AdmissionApplicationUpdateRequest(
         String city,
         String country,
         String postalCode,
+        String department,
         String motivationLetter,
-        ApplicationPriority priority
+        ApplicationPriority priority,
+
+        // Parents
+        String fatherName,
+        String fatherProfession,
+        String fatherCompany,
+        String fatherAddress,
+        String fatherCity,
+        String fatherPhone,
+        String motherName,
+        String motherProfession,
+        String motherCompany,
+        String motherAddress,
+        String motherCity,
+        String motherPhone,
+
+        // Parcours académique
+        String entryLevel,
+        String previousDiplomaYear,
+        String previousDiplomaTitle,
+        String previousSchool,
+        String previousSchoolCity
 ) {}

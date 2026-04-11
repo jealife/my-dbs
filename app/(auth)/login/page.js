@@ -133,7 +133,7 @@ export default function LoginPage() {
                   <input type="checkbox" className="w-4 h-4 rounded border-(--glass-border) text-primary focus:ring-primary/20" />
                   <span className="text-xs font-bold opacity-60 group-hover:opacity-100 transition-opacity italic">Se souvenir</span>
                </label>
-               <button type="button" className="text-xs font-black text-primary hover:underline underline-offset-4">Oublié ?</button>
+               <Link href="/mot-de-passe-oublie" className="text-xs font-black text-primary hover:underline underline-offset-4">Oublié ?</Link>
             </div>
 
             <button 

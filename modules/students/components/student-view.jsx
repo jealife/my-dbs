@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth-hook'
 import { AddUserModal } from '@/modules/users/components/add-user-modal'
 import { EditUserModal } from '@/modules/users/components/edit-user-modal'
+import { DeleteConfirmationModal } from '@/modules/users/components/DeleteConfirmationModal'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { userService } from '@/lib/user-service'
 import { formatPhotoUrl } from '@/lib/api-helpers'
@@ -17,6 +18,49 @@ import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import Link from 'next/link'
 import { MaintenanceZone } from '@/components/ui/maintenance-zone'
+
+function exportStudentsCSV(students) {
+  const headers = ['Prénom', 'Nom', 'Email', 'Matricule', 'Filière', 'Statut']
+  const rows = students.map(s => [
+    s.first_name || '',
+    s.last_name || '',
+    s.email || '',
+    s.studentNumber || s.student_number || s.userCode || '',
+    s.program?.name || s.programName || s.level || '',
+    s.status || '',
+  ])
+  const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `etudiants_${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function ExportButton({ activeTab }) {
+  const { data: students } = useQuery({ queryKey: ['students'], queryFn: userService.getStudents })
+
+  if (activeTab !== 'directory') return null
+
+  const handleExport = () => {
+    const list = Array.isArray(students) ? students : (students?.data || [])
+    if (!list.length) { toast.error('Aucun étudiant à exporter.'); return }
+    exportStudentsCSV(list)
+    toast.success(`${list.length} étudiant(s) exporté(s) en CSV.`)
+  }
+
+  return (
+    <button
+      onClick={handleExport}
+      className="flex items-center gap-2 px-6 py-3 rounded-2xl glass-card border-(--glass-border) font-black text-xs uppercase tracking-widest hover:border-primary/50 transition-all"
+    >
+      <Download className="w-4.5 h-4.5" />
+      Exporter (CSV)
+    </button>
+  )
+}
 
 export function StudentModuleView() {
   const { isAdmin, isTeacher } = useAuth()
@@ -38,10 +82,8 @@ export function StudentModuleView() {
         </div>
         
         <div className="flex gap-4">
-           <button className="flex items-center gap-2 px-6 py-3 rounded-2xl glass-card border-(--glass-border) font-black text-xs uppercase tracking-widest hover:border-primary/50 transition-all">
-              <Download className="w-4.5 h-4.5" />
-              Exporter (XLSX)
-           </button>
+           <ExportButton activeTab={activeTab} />
+
            {(isAdmin) && (
              <button 
                onClick={() => setIsAddModalOpen(true)}
@@ -95,6 +137,8 @@ export function StudentModuleView() {
 function StudentDirectory() {
   const queryClient = useQueryClient()
   const [editingUser, setEditingUser] = useState(null)
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, student: null, name: '' })
+  const [isDeleting, setIsDeleting] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   
   const { data: students, isLoading, error, refetch } = useQuery({
@@ -102,24 +146,30 @@ function StudentDirectory() {
     queryFn: userService.getStudents
   })
 
-  const handleDelete = async (student, name) => {
-    if (confirm(`⚠️ ATTENTION ⚠️\nÊtes-vous sûr de vouloir supprimer définitivement l'étudiant ${name} ? Cette action est irréversible.`)) {
-      try {
-        await userService.deleteUser(student, 'STUDENT')
-        toast.success(`Étudiant ${name} supprimé avec succès.`)
-      } catch (err) {
-        // Si c'est une 404, l'élément est déjà supprimé côté serveur, on peut le considérer comme "réussi" pour l'UI
-        if (err.response?.status === 404) {
-          toast.success(`L'élément n'existe plus sur le serveur (déjà supprimé).`)
-        } else {
-          toast.error(`Impossible de supprimer ${name}.`)
-          console.error("Erreur de suppression:", err)
-        }
-      } finally {
-        // Rafraîchir TOUJOURS la liste pour supprimer les fantômes
+  const handleDeleteClick = (student, name) => {
+    setDeleteModal({ isOpen: true, student, name })
+  }
+
+  const handleConfirmDelete = async () => {
+    const { student, name } = deleteModal
+    setIsDeleting(true)
+    try {
+      await userService.deleteUser(student, 'STUDENT')
+      toast.success(`Étudiant ${name} supprimé avec succès.`)
+      setDeleteModal({ isOpen: false, student: null, name: '' })
+      queryClient.invalidateQueries({ queryKey: ['students'] })
+      queryClient.invalidateQueries({ queryKey: ['admissions'] })
+    } catch (err) {
+      if (err.response?.status === 404) {
+        toast.success(`L'élément n'existe plus sur le serveur (déjà supprimé).`)
+        setDeleteModal({ isOpen: false, student: null, name: '' })
         queryClient.invalidateQueries({ queryKey: ['students'] })
-        queryClient.invalidateQueries({ queryKey: ['admissions'] })
+      } else {
+        toast.error(`Impossible de supprimer ${name}.`)
+        console.error("Erreur de suppression:", err)
       }
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -129,7 +179,6 @@ function StudentDirectory() {
 
   const handleSendCredentials = async (student) => {
     try {
-      // Use the email directly instead of error-prone IDs that might cross DB tables
       const identifier = student.email || student.userCode;
       if (!identifier) {
         toast.error("Format de l'étudiant invalide (E-mail introuvable).");
@@ -177,7 +226,6 @@ function StudentDirectory() {
 
   return (
     <div className="space-y-6">
-       {/* Filters Bar */}
        <div className="flex gap-4 px-2">
           <div className="relative group flex-1">
              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -211,7 +259,6 @@ function StudentDirectory() {
                   <tr key={student.id} className="group hover:bg-primary/2 transition-colors">
                      <td className="px-4 py-4 sm:px-6 sm:py-5">
                          <div className="flex items-center gap-3">
-                            {/* Avatar with real photo support */}
                             <div className="w-10 h-10 rounded-full premium-gradient p-px overflow-hidden shadow-lg shadow-primary/10 shrink-0">
                                {(() => {
                                  const photo = formatPhotoUrl(student.photoUrl || student.photo_url)
@@ -227,9 +274,7 @@ function StudentDirectory() {
                                <p className="text-[10px] font-black italic tracking-tighter text-indigo-500/80 uppercase">
                                   #{student.studentNumber || student.student_number || student.registration_number || student.userCode || 'N/A'}
                                </p>
-                               {/* Email visible on all screens */}
                                <p className="text-[10px] font-medium opacity-40 truncate">{student.email}</p>
-                               {/* Program visible only on mobile (replaces hidden md column) */}
                                <p className="text-[10px] font-bold opacity-50 md:hidden truncate">
                                  {student.program?.name || student.programName || student.level || ''}
                                </p>
@@ -280,11 +325,14 @@ function StudentDirectory() {
                            >
                               <Edit2 className="w-4 h-4" />
                            </button>
-                           <button 
-                             onClick={() => handleDelete(student, `${student.first_name} ${student.last_name}`)}
-                             className="p-2 rounded-xl bg-rose-50/50 text-rose-400 hover:bg-rose-500 hover:text-white transition-all active:scale-95"
-                             title="Supprimer"
-                           >
+                            <button 
+                              onClick={() => {
+                                const fullName = `${student.firstName || student.first_name || ''} ${student.lastName || student.last_name || ''}`.trim() || 'Étudiant'
+                                handleDeleteClick(student, fullName)
+                              }}
+                              className="p-2 rounded-xl bg-rose-50/50 text-rose-400 hover:bg-rose-500 hover:text-white transition-all active:scale-95"
+                              title="Supprimer"
+                            >
                               <Trash2 className="w-4 h-4" />
                            </button>
                         </div>
@@ -295,6 +343,16 @@ function StudentDirectory() {
           </table>
           </div>
        </GlassCard>
+
+       <DeleteConfirmationModal 
+          isOpen={deleteModal.isOpen}
+          onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+          onConfirm={handleConfirmDelete}
+          loading={isDeleting}
+          itemName={deleteModal.name}
+          title="Supprimer l'étudiant ?"
+          message="Êtes-vous sûr de vouloir supprimer définitivement cet étudiant ? Cette action est irréversible."
+       />
 
        {editingUser && (
           <EditUserModal 
@@ -569,14 +627,16 @@ function AdmissionWorkflow() {
                         (adm.status === 'UNDER_REVIEW' ? 'Approuver' : 'Inscrire'))}
                     </button>
                   )}
-                  <button 
-                    onClick={() => statusMutation.mutate({ id: adm.id, status: 'REJECTED', reason: 'Dossier incomplet' })}
-                    disabled={statusMutation.isPending}
-                    className="flex-1 py-3 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 active:scale-95"
-                  >
-                     <XCircle className="w-3.5 h-3.5" />
-                     {adm.status === 'REJECTED' ? 'Dossier Rejeté' : 'Rejeter'}
-                  </button>
+                  {adm.status !== 'ENROLLED' && adm.status !== 'REJECTED' && (
+                    <button
+                      onClick={() => statusMutation.mutate({ id: adm.id, status: 'REJECTED', reason: 'Dossier incomplet' })}
+                      disabled={statusMutation.isPending}
+                      className="flex-1 py-3 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                    >
+                       <XCircle className="w-3.5 h-3.5" />
+                       Rejeter
+                    </button>
+                  )}
                 </div>
              </GlassCard>
            </motion.div>

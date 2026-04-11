@@ -2,8 +2,12 @@ package com.mydbs.backend.documents.service.impl;
 
 import com.mydbs.backend.common.exception.FileStorageException;
 import com.mydbs.backend.common.exception.ResourceNotFoundException;
+import com.mydbs.backend.documents.dto.DocumentAccessLogResponseDTO;
+import com.mydbs.backend.documents.dto.ManagedDocumentResponseDTO;
 import com.mydbs.backend.documents.model.*;
 import com.mydbs.backend.documents.repository.*;
+import com.mydbs.backend.user.dto.UserSummaryDTO;
+import com.mydbs.backend.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,21 +38,24 @@ public class DocumentServiceImpl {
     private final ManagedDocumentRepository documentRepository;
     private final DocumentVersionRepository versionRepository;
     private final DocumentAccessLogRepository accessLogRepository;
+    private final UserRepository userRepository;
 
     @Value("${app.storage.local.base-dir:uploads}")
     private String baseDir;
 
     public DocumentServiceImpl(ManagedDocumentRepository documentRepository,
                                 DocumentVersionRepository versionRepository,
-                                DocumentAccessLogRepository accessLogRepository) {
+                                DocumentAccessLogRepository accessLogRepository,
+                                UserRepository userRepository) {
         this.documentRepository = documentRepository;
         this.versionRepository = versionRepository;
         this.accessLogRepository = accessLogRepository;
+        this.userRepository = userRepository;
     }
 
     // ─────────────────────── CRÉATION DOCUMENT + UPLOAD ──────────────────
 
-    public ManagedDocument uploadDocument(MultipartFile file, Long ownerId, DocumentType type,
+    public ManagedDocumentResponseDTO uploadDocument(MultipartFile file, Long ownerId, DocumentType type,
                                            AccessLevel accessLevel, String title, String description,
                                            String referenceType, Long referenceId,
                                            String tags, LocalDate expiryDate, Long academicYearId,
@@ -74,7 +81,7 @@ public class DocumentServiceImpl {
 
         // 3. Journal d'accès
         logAccess(savedDoc, ownerId, "UPLOAD", version.getId(), null);
-        return savedDoc;
+        return convertToResponseDTO(savedDoc);
     }
 
     /** Ajouter une nouvelle version à un document existant */
@@ -99,18 +106,23 @@ public class DocumentServiceImpl {
     // ─────────────────────── CONSULTATION ────────────────────────────────
 
     @Transactional(readOnly = true)
-    public Page<ManagedDocument> search(DocumentType type, Long ownerId, String keyword, Pageable pageable) {
-        return documentRepository.search(type, ownerId, keyword, pageable);
+    public Page<ManagedDocumentResponseDTO> search(DocumentType type, Long ownerId, String keyword, Pageable pageable) {
+        return documentRepository.search(type, ownerId, keyword, pageable)
+                .map(this::convertToResponseDTO);
     }
 
     @Transactional(readOnly = true)
-    public Page<ManagedDocument> getByOwner(Long ownerId, Pageable pageable) {
-        return documentRepository.findByOwnerIdAndArchivedFalseOrderByCreatedAtDesc(ownerId, pageable);
+    public Page<ManagedDocumentResponseDTO> getByOwner(Long ownerId, Pageable pageable) {
+        return documentRepository.findByOwnerIdAndArchivedFalseOrderByCreatedAtDesc(ownerId, pageable)
+                .map(this::convertToResponseDTO);
     }
 
     @Transactional(readOnly = true)
-    public List<ManagedDocument> getByReference(String referenceType, Long referenceId) {
-        return documentRepository.findByReferenceTypeAndReferenceIdAndArchivedFalse(referenceType, referenceId);
+    public List<ManagedDocumentResponseDTO> getByReference(String referenceType, Long referenceId) {
+        return documentRepository.findByReferenceTypeAndReferenceIdAndArchivedFalse(referenceType, referenceId)
+                .stream()
+                .map(this::convertToResponseDTO)
+                .toList();
     }
 
     @Transactional
@@ -143,11 +155,39 @@ public class DocumentServiceImpl {
     // ─────────────────────── AUDIT LOG ───────────────────────────────────
 
     @Transactional(readOnly = true)
-    public Page<DocumentAccessLog> getAuditLog(Long documentId, Pageable pageable) {
-        return accessLogRepository.findByDocumentIdOrderByAccessedAtDesc(documentId, pageable);
+    public Page<DocumentAccessLogResponseDTO> getAuditLog(Long documentId, Pageable pageable) {
+        return accessLogRepository.findByDocumentIdOrderByAccessedAtDesc(documentId, pageable)
+                .map(this::convertToAuditResponseDTO);
     }
 
     // ─────────────────────── PRIVATE HELPERS ─────────────────────────────
+
+    public ManagedDocumentResponseDTO convertToResponseDTO(ManagedDocument doc) {
+        UserSummaryDTO owner = null;
+        if (doc.getOwnerId() != null) {
+            owner = userRepository.findById(doc.getOwnerId())
+                    .map(UserSummaryDTO::fromEntity)
+                    .orElse(null);
+        }
+        return ManagedDocumentResponseDTO.fromEntity(doc, owner);
+    }
+
+    private DocumentAccessLogResponseDTO convertToAuditResponseDTO(DocumentAccessLog log) {
+        UserSummaryDTO user = null;
+        if (log.getUserId() != null) {
+            user = userRepository.findById(log.getUserId())
+                    .map(UserSummaryDTO::fromEntity)
+                    .orElse(null);
+        }
+        return new DocumentAccessLogResponseDTO(
+                log.getId(),
+                log.getAction(),
+                log.getAccessedAt(),
+                log.getIpAddress(),
+                log.getVersionId(),
+                user
+        );
+    }
 
     private DocumentVersion storeVersion(MultipartFile file, ManagedDocument doc,
                                           int versionNumber, String changeSummary) {

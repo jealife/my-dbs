@@ -11,7 +11,6 @@ public record GradeItemCreateRequest(
         @NotBlank String label,
         @NotNull Double score,
         Double maxScore,
-        Double coefficient,
         String semester,
         String teacherComment
 ) {}

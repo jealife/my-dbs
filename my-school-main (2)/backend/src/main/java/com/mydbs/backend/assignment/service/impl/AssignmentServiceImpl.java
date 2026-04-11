@@ -413,7 +413,6 @@ public class AssignmentServiceImpl {
         assignment.setAssignmentType(request.assignmentType());
         assignment.setMaxScore(request.maxScore() != null ? request.maxScore() : 20.0);
         assignment.setPassingScore(request.passingScore());
-        assignment.setCoefficient(request.coefficient() != null ? request.coefficient() : 1.0);
         assignment.setDueDate(request.dueDate());
         assignment.setAvailableFrom(request.availableFrom());
         assignment.setAllowLateSubmission(request.allowLateSubmission());
@@ -473,7 +472,7 @@ public class AssignmentServiceImpl {
                 .stream().filter(s -> s.isLatest() && s.getStatus() == SubmissionStatus.GRADED).count();
         return new AssignmentResponse(
                 a.getId(), a.getTitle(), a.getDescription(), a.getInstructions(),
-                a.getAssignmentType(), a.getMaxScore(), a.getPassingScore(), a.getCoefficient(),
+                a.getAssignmentType(), a.getMaxScore(), a.getPassingScore(),
                 a.getDueDate(), a.getAvailableFrom(), a.isAllowLateSubmission(),
                 a.getLatePenaltyPercent(), a.getMaxAttempts(),
                 a.isPublished(), a.isResultsPublished(), a.getSemester(),

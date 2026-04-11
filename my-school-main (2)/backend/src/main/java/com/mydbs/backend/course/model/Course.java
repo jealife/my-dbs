@@ -4,6 +4,7 @@ import com.mydbs.backend.academic.model.AcademicYear;
 import com.mydbs.backend.academic.model.ClassRoom;
 import com.mydbs.backend.academic.model.Program;
 import com.mydbs.backend.common.model.BaseAuditEntity;
+import com.mydbs.backend.ue.model.TeachingUnit;
 import com.mydbs.backend.user.model.User;
 import jakarta.persistence.*;
 
@@ -44,9 +45,6 @@ public class Course extends BaseAuditEntity {
     @Column(name = "credits", nullable = false)
     private Integer credits;
 
-    @Column(name = "coefficient", nullable = false)
-    private Double coefficient;
-
     @Column(name = "total_hours", nullable = false)
     private Integer totalHours;
 
@@ -84,6 +82,16 @@ public class Course extends BaseAuditEntity {
             foreignKey = @ForeignKey(name = "fk_course_instructor_user"))
     private User instructor;
 
+    /** Semestre du cours dans le système LMD : S1, S2, S3, S4, S5, S6 */
+    @Column(name = "semester", length = 10)
+    private String semester;
+
+    /** Unité d'Enseignement (UE) parente — optionnelle pour la rétrocompatibilité */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teaching_unit_id",
+            foreignKey = @ForeignKey(name = "fk_course_teaching_unit"))
+    private TeachingUnit teachingUnit;
+
     public String getTitle() {
         return title;
     }
@@ -114,10 +122,6 @@ public class Course extends BaseAuditEntity {
 
     public Integer getCredits() {
         return credits;
-    }
-
-    public Double getCoefficient() {
-        return coefficient;
     }
 
     public Integer getTotalHours() {
@@ -188,10 +192,6 @@ public class Course extends BaseAuditEntity {
         this.credits = credits;
     }
 
-    public void setCoefficient(Double coefficient) {
-        this.coefficient = coefficient;
-    }
-
     public void setTotalHours(Integer totalHours) {
         this.totalHours = totalHours;
     }
@@ -227,4 +227,9 @@ public class Course extends BaseAuditEntity {
     public void setInstructor(User instructor) {
         this.instructor = instructor;
     }
+
+    public String getSemester()                     { return semester; }
+    public void   setSemester(String semester)      { this.semester = semester; }
+    public TeachingUnit getTeachingUnit()            { return teachingUnit; }
+    public void   setTeachingUnit(TeachingUnit ue)  { this.teachingUnit = ue; }
 }

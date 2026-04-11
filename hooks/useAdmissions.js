@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { admissionsApi } from '../services/api/admissions';
+import { enrollmentService } from '@/lib/enrollment-service';
+import { ApplicationStatus } from '@/types/admissions';
 
 export const admissionsKeys = {
   all: ['admissions'],
@@ -50,8 +52,21 @@ export const useCreateAdmission = () => {
 
   return useMutation({
     mutationFn: (data) => admissionsApi.create(data),
-    onSuccess: () => {
+    onSuccess: async (newAdmission) => {
       queryClient.invalidateQueries({ queryKey: admissionsKeys.lists() });
+      
+      // Auto-assign on creation if not draft
+      if (newAdmission && newAdmission.status !== ApplicationStatus.DRAFT) {
+        try {
+          let fullAdmission = newAdmission;
+          if (!newAdmission.programId || !newAdmission.academicYearId) {
+             fullAdmission = await admissionsApi.getById(newAdmission.id);
+          }
+          await enrollmentService.processAdmissionClassAssignment(fullAdmission);
+        } catch (err) {
+          console.error("[useAdmissions] Auto-enrollment error on creation:", err);
+        }
+      }
     },
   });
 };
@@ -73,9 +88,24 @@ export const useChangeAdmissionStatus = (id) => {
 
   return useMutation({
     mutationFn: (data) => admissionsApi.changeStatus(id, data),
-    onSuccess: () => {
+    onSuccess: async (updated) => {
       queryClient.invalidateQueries({ queryKey: admissionsKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: admissionsKeys.lists() });
+
+      // Auto-assign on crucial status changes
+      // If 'updated' is partial (missing programId/academicYearId), fetch full detail
+      if (updated && (updated.status === ApplicationStatus.VALIDATED || updated.status === ApplicationStatus.ENROLLED)) {
+         try {
+           let fullAdmission = updated;
+           if (!updated.programId || !updated.academicYearId) {
+             console.log(`[useAdmissions] Status changed, fetching full detail for enrollment:`, id);
+             fullAdmission = await admissionsApi.getById(id);
+           }
+           await enrollmentService.processAdmissionClassAssignment(fullAdmission);
+         } catch (err) {
+           console.error("[useAdmissions] Auto-enrollment error:", err);
+         }
+      }
     },
   });
 };

@@ -13,11 +13,25 @@ public interface GradeBookRepository extends JpaRepository<GradeBook, Long> {
     Optional<GradeBook> findByStudentIdAndCourseIdAndAcademicYearIdAndArchivedFalse(
             Long studentId, Long courseId, Long academicYearId);
 
+    @Query("SELECT gb FROM GradeBook gb " +
+           "LEFT JOIN FETCH gb.course c " +
+           "LEFT JOIN FETCH c.teachingUnit " +
+           "WHERE gb.student.id = :studentId AND gb.academicYear.id = :academicYearId " +
+           "AND gb.archived = false ORDER BY c.title ASC")
     List<GradeBook> findByStudentIdAndAcademicYearIdAndArchivedFalseOrderByCourseTitle(
-            Long studentId, Long academicYearId);
+            @Param("studentId") Long studentId,
+            @Param("academicYearId") Long academicYearId);
 
+    @Query("SELECT gb FROM GradeBook gb " +
+           "LEFT JOIN FETCH gb.course c " +
+           "LEFT JOIN FETCH c.teachingUnit " +
+           "WHERE gb.student.id = :studentId AND gb.academicYear.id = :academicYearId " +
+           "AND gb.semester = :semester AND gb.archived = false " +
+           "ORDER BY c.title ASC")
     List<GradeBook> findByStudentIdAndAcademicYearIdAndSemesterAndArchivedFalse(
-            Long studentId, Long academicYearId, String semester);
+            @Param("studentId") Long studentId,
+            @Param("academicYearId") Long academicYearId,
+            @Param("semester") String semester);
 
     List<GradeBook> findByCourseIdAndAcademicYearIdAndArchivedFalse(
             Long courseId, Long academicYearId);

@@ -19,4 +19,8 @@ public interface AdmissionApplicationRepository extends JpaRepository<AdmissionA
 
     boolean existsByEmailAndAcademicYearIdAndProgramIdAndArchivedFalse(
             String email, Long academicYearId, Long programId);
+
+    Optional<AdmissionApplication> findTopByApplicationNumberStartingWithOrderByApplicationNumberDesc(String prefix);
+
+    boolean existsByApplicationNumber(String applicationNumber);
 }

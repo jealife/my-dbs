@@ -114,11 +114,17 @@ export function useAuth() {
         const raw = typeof window !== 'undefined' ? localStorage.getItem('dbs_user') : null
         const token = Cookies.get('dbs_token')
 
-        if (raw) {
+        if (raw && token) {
           const parsed = JSON.parse(raw)
           const normalized = normalizeUser(parsed)
           setUser(normalized)
           console.log('[MyDBS] Local storage user loaded:', normalized.first_name, normalized.last_name)
+        } else if (raw && !token) {
+          // Stale localStorage without a valid token — clear it and let the user re-login
+          localStorage.removeItem('dbs_user')
+          if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+            window.location.href = '/login?expired=true'
+          }
         } else if (token) {
           setUser({ role: 'ADMIN', first_name: 'Admin', last_name: '', user_code: '' })
         }
@@ -182,7 +188,8 @@ export function useAuth() {
   }
 
   const role = user?.role || ''
-  const isAdmin = ['ADMIN', 'DIRECTION', 'SUPER_ADMIN', 'SCHOOL_MANAGER'].includes(role)
+  const isAdmin = ['ADMIN', 'SUPER_ADMIN', 'SCHOOL_MANAGER'].includes(role)
+  const isDirection = role === 'DIRECTION'
   const isStudent = role === 'STUDENT'
   const isTeacher = role === 'TEACHER'
   const isFinance = role === 'FINANCE_MANAGER' || role === 'FINANCE'
@@ -207,6 +214,7 @@ export function useAuth() {
     logout,
     refreshUser,
     isAdmin,
+    isDirection,
     isStudent,
     isTeacher,
     isFinance,

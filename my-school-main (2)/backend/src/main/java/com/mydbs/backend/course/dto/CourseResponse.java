@@ -15,7 +15,6 @@ public record CourseResponse(
         String syllabus,
         String description,
         Integer credits,
-        Double coefficient,
         Integer totalHours,
         boolean published,
         Integer currentVersionNumber,
@@ -32,6 +31,10 @@ public record CourseResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         String createdBy,
-        String updatedBy
+        String updatedBy,
+        String semester,
+        Long teachingUnitId,
+        String teachingUnitCode,
+        String teachingUnitName
 ) {
 }

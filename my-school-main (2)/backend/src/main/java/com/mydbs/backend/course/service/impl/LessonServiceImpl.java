@@ -10,10 +10,12 @@ import com.mydbs.backend.course.repository.CourseModuleRepository;
 import com.mydbs.backend.course.repository.LessonRepository;
 import com.mydbs.backend.course.service.LessonService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class LessonServiceImpl implements LessonService {
 
     private final LessonRepository lessonRepository;
@@ -42,6 +44,7 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<LessonResponse> getByModule(Long moduleId) {
         return lessonRepository.findByCourseModuleIdAndArchivedFalseOrderByDisplayOrderAsc(moduleId)
                 .stream().map(this::map).toList();

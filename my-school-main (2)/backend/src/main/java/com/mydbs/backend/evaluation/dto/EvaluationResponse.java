@@ -13,7 +13,6 @@ public record EvaluationResponse(
         EvaluationStatus status,
         Double maxScore,
         Double passingScore,
-        Double coefficient,
         Double weightPercentage,
         LocalDateTime scheduledAt,
         Integer durationMinutes,

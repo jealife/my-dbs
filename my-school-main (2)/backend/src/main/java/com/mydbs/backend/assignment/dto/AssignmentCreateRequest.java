@@ -18,7 +18,6 @@ public record AssignmentCreateRequest(
 
         Double maxScore,
         Double passingScore,
-        Double coefficient,
 
         @NotNull(message = "La date limite est obligatoire")
         LocalDateTime dueDate,

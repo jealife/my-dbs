@@ -14,6 +14,7 @@ import { EditUserModal } from '@/modules/users/components/edit-user-modal'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { userService } from '@/lib/user-service'
 import { formatPhotoUrl } from '@/lib/api-helpers'
+import { DeleteConfirmationModal } from '@/modules/users/components/DeleteConfirmationModal'
 import { toast } from 'react-hot-toast'
 import { MaintenanceZone } from '@/components/ui/maintenance-zone'
 
@@ -133,7 +134,7 @@ function TeacherRow({ teacher: t, index, onEdit, onDelete }) {
 }
 
 // ─── Main list component ──────────────────────────────────────────────────────
-function TeacherList({ search, onEditTeacher }) {
+function TeacherList({ search, onEditTeacher, onDeleteTeacher }) {
   const queryClient = useQueryClient()
 
   const { data: teachers, isLoading, error, refetch } = useQuery({
@@ -141,21 +142,8 @@ function TeacherList({ search, onEditTeacher }) {
     queryFn: userService.getTeachers,
   })
 
-  const handleDelete = async (teacher, name) => {
-    if (confirm(`⚠️ Supprimer définitivement l'enseignant ${name} ?`)) {
-      try {
-        await userService.deleteUser(teacher, 'TEACHER')
-        toast.success(`${name} supprimé avec succès.`)
-      } catch (err) {
-        if (err.response?.status === 404) {
-          toast.success(`L'enseignant n'existe plus (déjà supprimé).`)
-        } else {
-          toast.error(`Impossible de supprimer ${name}.`)
-        }
-      } finally {
-        queryClient.invalidateQueries({ queryKey: ['teachers'] })
-      }
-    }
+  const handleDelete = (teacher, name) => {
+    onDeleteTeacher(teacher, name)
   }
 
   const raw = useMemo(() => Array.isArray(teachers) ? teachers : (teachers?.data ?? []), [teachers])
@@ -210,6 +198,8 @@ export function TeacherModuleView() {
   const queryClient = useQueryClient()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingTeacher, setEditingTeacher] = useState(null)
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, teacher: null, name: '' })
+  const [isDeleting, setIsDeleting] = useState(false)
   const [search, setSearch] = useState('')
 
   // Live count from cache
@@ -219,6 +209,33 @@ export function TeacherModuleView() {
 
   const handleEdit = (teacher) => {
     setEditingTeacher(teacher)
+  }
+
+  const handleDeleteClick = (teacher, name) => {
+    setDeleteModal({ isOpen: true, teacher, name })
+  }
+
+  const handleConfirmDelete = async () => {
+    const { teacher, name } = deleteModal
+    setIsDeleting(true)
+    try {
+      await userService.deleteUser(teacher, 'TEACHER')
+      toast.success(`${name} supprimé avec succès.`)
+      setDeleteModal({ isOpen: false, teacher: null, name: '' })
+      queryClient.invalidateQueries({ queryKey: ['teachers'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] })
+    } catch (err) {
+      if (err.response?.status === 404) {
+        toast.success(`L'élément n'existe plus sur le serveur.`)
+        setDeleteModal({ isOpen: false, teacher: null, name: '' })
+        queryClient.invalidateQueries({ queryKey: ['teachers'] })
+      } else {
+        toast.error(`Impossible de supprimer ${name}.`)
+        console.error("Erreur de suppression:", err)
+      }
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   const handleModalSuccess = () => {
@@ -301,7 +318,7 @@ export function TeacherModuleView() {
           <span className="hidden sm:inline w-20">Statut</span>
           <span className="w-20 text-right">Actions</span>
         </div>
-        <TeacherList search={search} onEditTeacher={handleEdit} />
+        <TeacherList search={search} onEditTeacher={handleEdit} onDeleteTeacher={handleDeleteClick} />
       </GlassCard>
 
       {/* Modals — refresh list on success */}
@@ -317,6 +334,16 @@ export function TeacherModuleView() {
         onClose={() => setEditingTeacher(null)}
         user={editingTeacher}
         onUpdateSuccess={handleModalSuccess}
+      />
+
+      <DeleteConfirmationModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+        onConfirm={handleConfirmDelete}
+        loading={isDeleting}
+        itemName={deleteModal.name}
+        title="Supprimer l'enseignant ?"
+        message="Êtes-vous sûr de vouloir supprimer définitivement ce profil enseignant ?"
       />
     </div>
   )

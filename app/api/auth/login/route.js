@@ -1,6 +1,6 @@
 /**
  * Server-side proxy for login.
- * Gère le CSRF de Spring Security : récupère le token via GET puis l'inclut dans le POST.
+ * Bypasses browser CORS — calls the backend directly from the Next.js server.
  */
 export async function POST(request) {
   const backendBase =
@@ -8,18 +8,19 @@ export async function POST(request) {
     process.env.NEXT_PUBLIC_BACKEND_BASE_URL ||
     'http://localhost:8080';
 
+  // AuthController is mapped to /api/auth (no v1 prefix)
+  const loginUrl = `${backendBase}/api/auth/login`;
+
   try {
     const body = await request.json();
     console.log('[MyDBS Route] → Tentative login pour:', body.email);
 
-    const headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-
-    const backendResponse = await fetch(`${backendBase}/api/auth/login`, {
+    const backendResponse = await fetch(loginUrl, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
       body: JSON.stringify(body),
     });
 
@@ -55,4 +56,3 @@ export async function POST(request) {
     );
   }
 }
-

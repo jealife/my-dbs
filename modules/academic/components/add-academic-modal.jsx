@@ -37,13 +37,25 @@ export function AddAcademicModal({ isOpen, onClose, mode = 'level', onSuccess, i
     if (initialData) {
       if (mode === 'level') {
         setLevelData({
-          ...initialData,
+          name: initialData.name || '',
+          code: initialData.code || '',
+          description: initialData.description || '',
           startDate: initialData.startDate || '',
           endDate: initialData.endDate || '',
+          currentYear: initialData.currentYear ?? false,
+          status: initialData.status || 'ACTIVE',
         })
       } else {
         setProgramData({
-          ...initialData,
+          name: initialData.name || '',
+          code: initialData.code || '',
+          description: initialData.description || '',
+          departmentName: initialData.departmentName || '',
+          facultyName: initialData.facultyName || '',
+          level: initialData.level || '',
+          durationInMonths: initialData.durationInMonths ?? 12,
+          creditsRequired: initialData.creditsRequired ?? 60,
+          status: initialData.status || 'ACTIVE',
         })
       }
     } else {

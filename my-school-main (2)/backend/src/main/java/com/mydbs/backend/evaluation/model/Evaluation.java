@@ -41,9 +41,6 @@ public class Evaluation extends BaseAuditEntity {
     @Column(name = "passing_score", nullable = false)
     private Double passingScore = 10.0;
 
-    @Column(name = "coefficient", nullable = false)
-    private Double coefficient = 1.0;
-
     @Column(name = "weight_percentage")
     private Double weightPercentage;
 
@@ -108,9 +105,6 @@ public class Evaluation extends BaseAuditEntity {
 
     public Double getPassingScore() { return passingScore; }
     public void setPassingScore(Double passingScore) { this.passingScore = passingScore; }
-
-    public Double getCoefficient() { return coefficient; }
-    public void setCoefficient(Double coefficient) { this.coefficient = coefficient; }
 
     public Double getWeightPercentage() { return weightPercentage; }
     public void setWeightPercentage(Double weightPercentage) { this.weightPercentage = weightPercentage; }

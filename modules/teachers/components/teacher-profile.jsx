@@ -2,15 +2,17 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  User, Mail, Phone, Calendar, BookOpen, 
-  ArrowLeft, Edit2, Trash2, Star, Clock, 
-  Activity, CheckCircle, Download,
+import {
+  User, Mail, Phone, Calendar, BookOpen,
+  ArrowLeft, Edit2, Trash2, Star, Clock,
+  Activity, CheckCircle, Download, Loader2,
   MoreVertical, Shield, Building2, Briefcase
 } from 'lucide-react'
 import { GlassCard } from '@/components/ui/glass-card'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { userService } from '@/lib/user-service'
+import { courseService } from '@/lib/course-service'
+import { planningService } from '@/lib/planning-service'
 import { formatPhotoUrl, formatDateFr } from '@/lib/api-helpers'
 import { cn } from '@/lib/utils'
 import { toast } from 'react-hot-toast'
@@ -26,6 +28,24 @@ export function TeacherProfileView({ teacherId }) {
   const { data: teacher, isLoading, error } = useQuery({
     queryKey: ['teacher', teacherId],
     queryFn: () => userService.getTeacherById(teacherId),
+    enabled: !!teacherId,
+  })
+
+  // 2. Fetch Teacher's Courses
+  const { data: teacherCourses = [], isLoading: loadingCourses } = useQuery({
+    queryKey: ['teacher-courses', teacherId],
+    queryFn: () => courseService.getTeacherCourses(teacherId),
+    enabled: !!teacherId,
+  })
+
+  // 3. Fetch Teacher's Upcoming Agenda
+  const { data: agenda = [] } = useQuery({
+    queryKey: ['teacher-agenda', teacherId],
+    queryFn: () => {
+      const now = new Date()
+      const inTwoWeeks = new Date(now.getTime() + 14 * 86400000)
+      return planningService.getMyAgenda(teacherId, now.toISOString().split('T')[0], inTwoWeeks.toISOString().split('T')[0])
+    },
     enabled: !!teacherId,
   })
 
@@ -122,19 +142,56 @@ export function TeacherProfileView({ teacherId }) {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
           <GlassCard title="Cours Assignés" description="Modules et sessions sous la responsabilité de l&apos;enseignant.">
-             <div className="py-10 text-center opacity-30 italic font-black uppercase tracking-widest text-xs">
+            {loadingCourses ? (
+              <div className="flex flex-col items-center py-10 gap-3 opacity-40">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <p className="text-xs font-black uppercase tracking-widest italic">Chargement des cours...</p>
+              </div>
+            ) : teacherCourses.length === 0 ? (
+              <div className="py-10 text-center opacity-30 italic font-black uppercase tracking-widest text-xs">
                 Aucune affectation trouvée pour le semestre en cours.
-             </div>
+              </div>
+            ) : (
+              <div className="pt-4 space-y-3">
+                {teacherCourses.map(course => (
+                  <Link key={course.id} href={`/courses/${course.id}`} className="flex items-center gap-4 p-4 rounded-3xl bg-slate-50 dark:bg-slate-900/40 border border-(--glass-border) hover:border-primary/50 transition-all group">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                      <BookOpen className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-bold tracking-tight truncate">{course.title || course.name}</h4>
+                      <p className="text-[10px] font-bold uppercase tracking-wide opacity-40">
+                        {course.programName || course.code || '—'} • {course.credits || '—'} ECTS
+                      </p>
+                    </div>
+                    <span className={cn("text-[9px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest shrink-0",
+                      course.status === 'PUBLISHED' ? 'bg-emerald-500/10 text-emerald-600' :
+                      course.status === 'DRAFT' ? 'bg-amber-500/10 text-amber-600' :
+                      'bg-slate-100 text-slate-500 dark:bg-slate-800'
+                    )}>
+                      {course.status || 'ACTIF'}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </GlassCard>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <GlassCard title="Statistiques Pédagogiques">
               <div className="pt-4 space-y-6">
-                {[
-                  { label: 'Evaluation Etudiants', val: '4.8/5', pct: 96, color: 'bg-amber-500' },
-                  { label: 'Taux de Complétion', val: '92%', pct: 92, color: 'bg-emerald-500' },
-                  { label: 'Assiduité Moyenne', val: '88%', pct: 88, color: 'bg-indigo-500' },
-                ].map((s, i) => (
+                {(() => {
+                  const publishedCount = teacherCourses.filter(c => c.status === 'PUBLISHED').length
+                  const totalCount = teacherCourses.length || 1
+                  const completionPct = Math.round((publishedCount / totalCount) * 100)
+                  const upcomingCount = agenda.length
+                  const assiduityPct = upcomingCount > 0 ? Math.min(100, Math.round((upcomingCount / Math.max(upcomingCount, 5)) * 100)) : 0
+                  return [
+                    { label: 'Cours Assignés', val: `${teacherCourses.length}`, pct: Math.min(100, teacherCourses.length * 10), color: 'bg-amber-500' },
+                    { label: 'Taux Publication', val: `${completionPct}%`, pct: completionPct, color: 'bg-emerald-500' },
+                    { label: 'Sessions Planifiées', val: `${upcomingCount}`, pct: assiduityPct, color: 'bg-indigo-500' },
+                  ]
+                })().map((s, i) => (
                   <div key={i} className="space-y-2">
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest opacity-60">
                       <span>{s.label}</span>
@@ -156,7 +213,21 @@ export function TeacherProfileView({ teacherId }) {
                    </div>
                    <div className="space-y-3">
                       <p className="text-[10px] font-black uppercase tracking-widest opacity-40 italic">Prochaine Session</p>
-                      <p className="text-sm font-bold">Lundi 08:30 • Algo Avancée</p>
+                      {agenda.length > 0 ? (
+                        <div className="space-y-2">
+                          {agenda.slice(0, 3).map((evt, i) => (
+                            <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/40">
+                              <Calendar className="w-4 h-4 text-primary shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-sm font-bold truncate">{evt.title || evt.courseName || `Session #${evt.id}`}</p>
+                                <p className="text-[10px] opacity-50 font-medium">{formatDateFr(evt.startTime || evt.scheduledAt)}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm font-bold opacity-40 italic">Aucune session planifiée</p>
+                      )}
                    </div>
                 </div>
              </GlassCard>
@@ -173,19 +244,21 @@ export function TeacherProfileView({ teacherId }) {
 
           <GlassCard title="Dernières Activités">
              <div className="pt-4 space-y-4">
-                {[
-                  { msg: 'Notes publiées : Mathématiques', date: 'Il y a 2h' },
-                  { msg: 'Absence marquée : Session #104', date: 'Hier' },
-                  { msg: 'Document déposé : Syllabus', date: 'Il y a 3 jours' },
-                ].map((act, i) => (
-                  <div key={i} className="flex gap-3 text-xs">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5" />
-                    <div>
-                       <p className="font-bold opacity-80">{act.msg}</p>
-                       <p className="opacity-40 italic font-medium">{act.date}</p>
+                {teacherCourses.length > 0 ? (
+                  teacherCourses.slice(0, 4).map((course, i) => (
+                    <div key={i} className="flex gap-3 text-xs">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5" />
+                      <div>
+                        <p className="font-bold opacity-80">
+                          {course.status === 'PUBLISHED' ? 'Cours publié' : 'Cours créé'} : {course.title || course.name}
+                        </p>
+                        <p className="opacity-40 italic font-medium">{course.updatedAt ? formatDateFr(course.updatedAt) : course.createdAt ? formatDateFr(course.createdAt) : '—'}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="py-6 text-center opacity-30 italic text-xs">Aucune activité récente.</div>
+                )}
              </div>
           </GlassCard>
         </div>

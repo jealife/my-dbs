@@ -35,8 +35,7 @@ public class AdmissionController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN','ADMIN','SCHOOL_MANAGER','CANDIDATE')")
-    @Operation(summary = "Créer une candidature", description = "Crée un nouveau dossier en statut DRAFT")
+    @Operation(summary = "Créer une candidature", description = "Crée un nouveau dossier en statut DRAFT - Endpoint public pour les candidats")
     public ApiResponse<AdmissionApplicationResponse> create(
             @Valid @RequestBody AdmissionApplicationCreateRequest request) {
         return ApiResponse.success("Candidature créée avec succès", admissionService.create(request));

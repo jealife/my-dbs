@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, User, Mail, Phone, MapPin, Globe, Calendar, Briefcase, GraduationCap, CheckCircle2, Save, Fingerprint } from 'lucide-react'
+import { X, User, Users, Mail, Phone, MapPin, Globe, Calendar, Briefcase, GraduationCap, CheckCircle2, Save, Fingerprint } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard } from '@/components/ui/glass-card'
 import { cn } from '@/lib/utils'
@@ -58,7 +58,37 @@ export function EditUserModal({ isOpen, onClose, user, onUpdateSuccess }) {
     employmentType: 'FULL_TIME',
     remoteAvailable: false,
     role: 'STUDENT',
-    status: 'ACTIVE'
+    status: 'ACTIVE',
+    
+    // Web Form Field Sync
+    placeOfBirth: '',
+    department: '',
+    currentCity: '',
+    currentCountry: '',
+    
+    // Parents
+    fatherName: '',
+    fatherProfession: '',
+    fatherCompany: '',
+    fatherAddress: '',
+    fatherCity: '',
+    fatherPhone: '',
+    motherName: '',
+    motherProfession: '',
+    motherCompany: '',
+    motherAddress: '',
+    motherCity: '',
+    motherPhone: '',
+    
+    // Académique
+    entryLevel: '',
+    previousDiplomaYear: '',
+    previousDiplomaTitle: '',
+    previousDiplomaSerie: '',
+    previousDiplomaMention: '',
+    previousSchool: '',
+    previousSchoolCity: '',
+    motivationLetter: ''
   })
 
   useEffect(() => {
@@ -109,7 +139,36 @@ export function EditUserModal({ isOpen, onClose, user, onUpdateSuccess }) {
         officeHours: user.officeHours || user.office_hours || '',
         bio: user.bio || '',
         employmentType: user.employmentType || user.employment_type || 'FULL_TIME',
-        remoteAvailable: user.remoteAvailable ?? false
+        remoteAvailable: user.remoteAvailable ?? false,
+
+        // Web Form Fields (Mapped from DB fields if available)
+        placeOfBirth: user.placeOfBirth || user.place_of_birth || '',
+        department: user.department || '',
+        currentCity: user.currentCity || user.current_city || '',
+        currentCountry: user.currentCountry || user.current_country || '',
+        
+        fatherName: user.fatherName || user.father_name || '',
+        fatherProfession: user.fatherProfession || user.father_profession || '',
+        fatherCompany: user.fatherCompany || user.father_company || '',
+        fatherAddress: user.fatherAddress || user.father_address || '',
+        fatherCity: user.fatherCity || user.father_city || '',
+        fatherPhone: user.fatherPhone || user.father_phone || '',
+        
+        motherName: user.motherName || user.mother_name || '',
+        motherProfession: user.motherProfession || user.mother_profession || '',
+        motherCompany: user.motherCompany || user.mother_company || '',
+        motherAddress: user.motherAddress || user.mother_address || '',
+        motherCity: user.motherCity || user.mother_city || '',
+        motherPhone: user.motherPhone || user.mother_phone || '',
+        
+        entryLevel: user.entryLevel || user.entry_level || '',
+        previousDiplomaYear: user.previousDiplomaYear || user.previous_diploma_year || '',
+        previousDiplomaTitle: user.previousDiplomaTitle || user.previous_diploma_title || '',
+        previousDiplomaSerie: user.previousDiplomaSerie || user.previous_diploma_serie || '',
+        previousDiplomaMention: user.previousDiplomaMention || user.previous_diploma_mention || '',
+        previousSchool: user.previousSchool || user.previous_school || '',
+        previousSchoolCity: user.previousSchoolCity || user.previous_school_city || '',
+        motivationLetter: user.motivationLetter || user.motivation_letter || ''
       })
 
       // Load metadata
@@ -162,7 +221,36 @@ export function EditUserModal({ isOpen, onClose, user, onUpdateSuccess }) {
         photoUrl: formData.photoUrl || '',
         nationalIdNumber: formData.nationalIdNumber || '',
         passportNumber: formData.passportNumber || '',
-        userId: user.userId || user.user_id || user.id || null
+        userId: user.userId || user.user_id || user.id || null,
+        
+        // Web Form Fields Sync
+        placeOfBirth: formData.placeOfBirth,
+        department: formData.department,
+        currentCity: formData.currentCity,
+        currentCountry: formData.currentCountry,
+        
+        fatherName: formData.fatherName,
+        fatherProfession: formData.fatherProfession,
+        fatherCompany: formData.fatherCompany,
+        fatherAddress: formData.fatherAddress,
+        fatherCity: formData.fatherCity,
+        fatherPhone: formData.fatherPhone,
+        
+        motherName: formData.motherName,
+        motherProfession: formData.motherProfession,
+        motherCompany: formData.motherCompany,
+        motherAddress: formData.motherAddress,
+        motherCity: formData.motherCity,
+        motherPhone: formData.motherPhone,
+        
+        entryLevel: formData.entryLevel,
+        previousDiplomaYear: formData.previousDiplomaYear,
+        previousDiplomaTitle: formData.previousDiplomaTitle,
+        previousDiplomaSerie: formData.previousDiplomaSerie,
+        previousDiplomaMention: formData.previousDiplomaMention,
+        previousSchool: formData.previousSchool,
+        previousSchoolCity: formData.previousSchoolCity,
+        motivationLetter: formData.motivationLetter
       }
 
       let payload
@@ -214,10 +302,15 @@ export function EditUserModal({ isOpen, onClose, user, onUpdateSuccess }) {
       if (onUpdateSuccess) onUpdateSuccess()
       onClose()
     } catch (error) {
-      const msg = error.response?.data?.message || "Erreur lors de la mise à jour"
-      const data = error.response?.data?.data
-      console.error("[MyDBS] Erreur complète:", error.response?.data)
-      toast.error(typeof data === 'object' ? `${msg}: ${Object.values(data).join(', ')}` : msg)
+      const errorData = error.response?.data
+      const msg = errorData?.message || "Erreur lors de la mise à jour"
+      const data = errorData?.data
+
+      console.error("[MyDBS] Erreur complète de mise à jour:", errorData)
+      
+      // Sécurité: Ne pas appeler Object.values si data est null/undefined
+      const detail = (data && typeof data === 'object') ? `: ${Object.values(data).join(', ')}` : ""
+      toast.error(`${msg}${detail}`)
     } finally {
       setLoading(false)
     }
@@ -228,6 +321,7 @@ export function EditUserModal({ isOpen, onClose, user, onUpdateSuccess }) {
   const tabs = [
     { id: 'personal', label: 'Personnel', icon: User },
     { id: 'contact', label: 'Contact', icon: Mail },
+    { id: 'parents', label: 'Parents', icon: Users },
     { id: 'academic', label: formData.role === 'TEACHER' ? 'Professionnel' : 'Scolarité', icon: formData.role === 'TEACHER' ? Briefcase : GraduationCap },
     { id: 'docs', label: 'Dossier Technique', icon: Fingerprint }
   ]
@@ -352,9 +446,39 @@ export function EditUserModal({ isOpen, onClose, user, onUpdateSuccess }) {
                     className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 focus:border-primary outline-none font-bold text-sm"
                   />
                 </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">Lieu de Naissance</label>
+                  <input 
+                    type="text" 
+                    placeholder="Lieu de naissance"
+                    value={formData.placeOfBirth} 
+                    onChange={e => setFormData({...formData, placeOfBirth: e.target.value})}
+                    className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 focus:border-primary outline-none font-bold text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">Département</label>
+                  <input 
+                    type="text" 
+                    placeholder="Département"
+                    value={formData.department} 
+                    onChange={e => setFormData({...formData, department: e.target.value})}
+                    className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 focus:border-primary outline-none font-bold text-sm"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">Boîte Postale</label>
+                  <input 
+                    type="text" 
+                    placeholder="BP"
+                    value={formData.postalCode} 
+                    onChange={e => setFormData({...formData, postalCode: e.target.value})}
+                    className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 focus:border-primary outline-none font-bold text-sm"
+                  />
+                </div>
                 {formData.role !== 'TEACHER' && (
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">Lieu de Naissance (Ville/Pays)</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">Ville & Pays de Naissance</label>
                     <div className="grid grid-cols-2 gap-2">
                       <input 
                         type="text" 
@@ -416,18 +540,56 @@ export function EditUserModal({ isOpen, onClose, user, onUpdateSuccess }) {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">Ville</label>
-                    <input type="text" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary outline-none font-bold text-sm" />
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">Ville Actuelle</label>
+                    <input type="text" value={formData.currentCity} onChange={e => setFormData({...formData, currentCity: e.target.value})} className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary outline-none font-bold text-sm" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">Code Postal</label>
-                    <input type="text" value={formData.postalCode} onChange={e => setFormData({...formData, postalCode: e.target.value})} className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary outline-none font-bold text-sm" />
+                    <label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">Pays Actuel</label>
+                    <input type="text" value={formData.currentCountry} onChange={e => setFormData({...formData, currentCountry: e.target.value})} className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary outline-none font-bold text-sm" />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">Pays</label>
-                    <input type="text" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary outline-none font-bold text-sm" />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'parents' && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
+                {/* Father Info */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-primary border-b border-primary/20 pb-2">Informations du Père</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-[10px] font-bold uppercase opacity-60">Nom complet</label>
+                      <input type="text" value={formData.fatherName} onChange={e => setFormData({...formData, fatherName: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase opacity-60">Profession</label>
+                      <input type="text" value={formData.fatherProfession} onChange={e => setFormData({...formData, fatherProfession: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase opacity-60">Téléphone</label>
+                      <input type="tel" value={formData.fatherPhone} onChange={e => setFormData({...formData, fatherPhone: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mother Info */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-pink-500 border-b border-pink-500/20 pb-2">Informations de la Mère</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-[10px] font-bold uppercase opacity-60">Nom complet</label>
+                      <input type="text" value={formData.motherName} onChange={e => setFormData({...formData, motherName: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase opacity-60">Profession</label>
+                      <input type="text" value={formData.motherProfession} onChange={e => setFormData({...formData, motherProfession: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase opacity-60">Téléphone</label>
+                      <input type="tel" value={formData.motherPhone} onChange={e => setFormData({...formData, motherPhone: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -545,6 +707,43 @@ export function EditUserModal({ isOpen, onClose, user, onUpdateSuccess }) {
                           <option value="">Sélectionner la filière</option>
                           {programs.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                         </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">Niveau d&apos;Entrée (L1, L2...)</label>
+                        <select 
+                          value={formData.entryLevel} 
+                          onChange={e => setFormData({...formData, entryLevel: e.target.value})}
+                          className="w-full px-4 py-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 focus:border-primary outline-none font-bold text-sm"
+                        >
+                          <option value="">Sélectionner le niveau</option>
+                          <option value="L1">L1</option>
+                          <option value="L2">L2</option>
+                          <option value="L3">L3</option>
+                          <option value="M1">M1</option>
+                          <option value="M2">M2</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 border-b border-dashed pb-1">Dernier Diplôme & Formation</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold opacity-60">Intitulé du Diplôme</label>
+                          <input type="text" value={formData.previousDiplomaTitle} onChange={e => setFormData({...formData, previousDiplomaTitle: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold opacity-60">Année d&apos;obtention</label>
+                          <input type="text" value={formData.previousDiplomaYear} onChange={e => setFormData({...formData, previousDiplomaYear: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold opacity-60">Établissement</label>
+                          <input type="text" value={formData.previousSchool} onChange={e => setFormData({...formData, previousSchool: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold opacity-60">Mention</label>
+                          <input type="text" value={formData.previousDiplomaMention} onChange={e => setFormData({...formData, previousDiplomaMention: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold" />
+                        </div>
                       </div>
                     </div>
                   </div>

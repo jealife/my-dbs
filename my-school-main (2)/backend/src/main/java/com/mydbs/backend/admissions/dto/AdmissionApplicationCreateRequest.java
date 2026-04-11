@@ -3,11 +3,11 @@ package com.mydbs.backend.admissions.dto;
 import com.mydbs.backend.admissions.model.ApplicationPriority;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
 public record AdmissionApplicationCreateRequest(
+        // ── État civil ───────────────────────────────────────────────────────
         @NotBlank(message = "Le prenom est obligatoire")
         String firstName,
 
@@ -19,22 +19,41 @@ public record AdmissionApplicationCreateRequest(
         String email,
 
         String phoneNumber,
-
         LocalDate dateOfBirth,
-
-        String nationality,
-
         String gender,
-
+        String cityOfBirth,
+        String countryOfBirth,
+        String department,
+        String postalCode,
+        String nationality,
         String addressLine,
+
+        // ── Parents ──────────────────────────────────────────────────────────
+        String fatherName,
+        String fatherProfession,
+        String fatherCompany,
+        String fatherAddress,
+        String fatherCity,
+        String fatherPhone,
+
+        String motherName,
+        String motherProfession,
+        String motherCompany,
+        String motherAddress,
+        String motherCity,
+        String motherPhone,
+
+        // ── Parcours académique ──────────────────────────────────────────────
+        String entryLevel,
+        String previousDiplomaYear,
+        String previousDiplomaTitle,
+        String previousSchool,
+        String previousSchoolCity,
 
         String motivationLetter,
 
-        @NotNull(message = "L'identifiant du programme est obligatoire")
+        // ── Références ───────────────────────────────────────────────────────
         Long programId,
-
-        @NotNull(message = "L'identifiant de l'annee academique est obligatoire")
         Long academicYearId,
-
         ApplicationPriority priority
 ) {}

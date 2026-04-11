@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
+import { Breadcrumb } from "@/components/breadcrumb";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
@@ -37,6 +38,7 @@ export default function DashboardLayout({ children }) {
       <div className="flex-1 w-full lg:ml-[280px] flex flex-col items-center relative transition-all duration-500">
         <Header onMenuClick={() => setIsMobileOpen(true)} />
         <main className="w-full px-4 md:px-8 pt-28 md:pt-36 pb-12 max-w-[1600px] animate-in slide-in-from-bottom-4 duration-500">
+          <Breadcrumb />
           {children}
         </main>
       </div>

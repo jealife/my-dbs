@@ -320,7 +320,6 @@ public class EvaluationServiceImpl implements EvaluationService {
         eval.setEvaluationType(request.evaluationType());
         eval.setMaxScore(request.maxScore());
         eval.setPassingScore(request.passingScore() != null ? request.passingScore() : request.maxScore() / 2.0);
-        eval.setCoefficient(request.coefficient());
         eval.setWeightPercentage(request.weightPercentage());
         eval.setScheduledAt(request.scheduledAt());
         eval.setDurationMinutes(request.durationMinutes());
@@ -398,7 +397,7 @@ public class EvaluationServiceImpl implements EvaluationService {
         return new EvaluationResponse(
                 eval.getId(), eval.getTitle(), eval.getDescription(),
                 eval.getEvaluationType(), eval.getStatus(),
-                eval.getMaxScore(), eval.getPassingScore(), eval.getCoefficient(),
+                eval.getMaxScore(), eval.getPassingScore(),
                 eval.getWeightPercentage(), eval.getScheduledAt(), eval.getDurationMinutes(),
                 eval.getRoomInfo(), eval.getInstructions(), eval.getSemester(),
                 eval.getResultsPublishedAt(),
@@ -421,7 +420,7 @@ public class EvaluationServiceImpl implements EvaluationService {
 
         return new EvaluationSummaryResponse(
                 eval.getId(), eval.getTitle(), eval.getEvaluationType(), eval.getStatus(),
-                eval.getMaxScore(), eval.getCoefficient(), eval.getScheduledAt(),
+                eval.getMaxScore(), eval.getScheduledAt(),
                 eval.getCourse().getTitle(), eval.getCourse().getCode(),
                 total, graded, avg, eval.getCreatedAt()
         );

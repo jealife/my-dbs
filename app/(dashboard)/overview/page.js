@@ -7,9 +7,10 @@ import { TeacherDashboard } from '@/modules/dashboard/components/teacher-dashboa
 import { FinanceDashboard } from '@/modules/dashboard/components/finance-dashboard'
 import { MentorDashboard } from '@/modules/dashboard/components/mentor-dashboard'
 import { ScolarityDashboard } from '@/modules/dashboard/components/scolarity-dashboard'
+import { DirectionDashboard } from '@/modules/dashboard/components/direction-dashboard'
 
 export default function OverviewPage() {
-  const { user, loading, isAdmin, isStudent, isTeacher, isFinance, isMentor, isScolarity, isAuthenticated } = useAuth()
+  const { user, loading, isAdmin, isDirection, isStudent, isTeacher, isFinance, isMentor, isScolarity, isAuthenticated } = useAuth()
 
   if (loading) {
     return (
@@ -22,13 +23,14 @@ export default function OverviewPage() {
 
   // Dashboard dispatching based on roles
   if (isAuthenticated) {
+    if (isDirection) return <DirectionDashboard user={user} />
     if (isAdmin) return <AdminDashboard user={user} />
     if (isStudent) return <StudentDashboard user={user} />
     if (isTeacher) return <TeacherDashboard user={user} />
     if (isFinance) return <FinanceDashboard user={user} />
     if (isScolarity) return <ScolarityDashboard user={user} />
     if (isMentor) return <MentorDashboard user={user} />
-    
+
     // Fallback if role is authenticated but no specific dashboard
     return <AdminDashboard user={user} />
   }

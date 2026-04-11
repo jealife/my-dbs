@@ -78,8 +78,65 @@ public class AdmissionApplication extends BaseAuditEntity {
     @Column(name = "nationality", length = 80)
     private String nationality;
 
+    @Column(name = "department", length = 120)
+    private String department;
+
     @Column(name = "motivation_letter", columnDefinition = "TEXT")
     private String motivationLetter;
+
+    // ── Informations père ──────────────────────────────────────────────────
+    @Column(name = "father_name", length = 180)
+    private String fatherName;
+
+    @Column(name = "father_profession", length = 180)
+    private String fatherProfession;
+
+    @Column(name = "father_company", length = 180)
+    private String fatherCompany;
+
+    @Column(name = "father_address", length = 255)
+    private String fatherAddress;
+
+    @Column(name = "father_city", length = 120)
+    private String fatherCity;
+
+    @Column(name = "father_phone", length = 40)
+    private String fatherPhone;
+
+    // ── Informations mère ──────────────────────────────────────────────────
+    @Column(name = "mother_name", length = 180)
+    private String motherName;
+
+    @Column(name = "mother_profession", length = 180)
+    private String motherProfession;
+
+    @Column(name = "mother_company", length = 180)
+    private String motherCompany;
+
+    @Column(name = "mother_address", length = 255)
+    private String motherAddress;
+
+    @Column(name = "mother_city", length = 120)
+    private String motherCity;
+
+    @Column(name = "mother_phone", length = 40)
+    private String motherPhone;
+
+    // ── Parcours académique ────────────────────────────────────────────────
+    @Column(name = "entry_level", length = 80)
+    private String entryLevel;
+
+    @Column(name = "previous_diploma_year", length = 10)
+    private String previousDiplomaYear;
+
+    @Column(name = "previous_diploma_title", length = 255)
+    private String previousDiplomaTitle;
+
+    @Column(name = "previous_school", length = 255)
+    private String previousSchool;
+
+    @Column(name = "previous_school_city", length = 120)
+    private String previousSchoolCity;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
@@ -207,4 +264,58 @@ public class AdmissionApplication extends BaseAuditEntity {
 
     public Student getStudent() { return student; }
     public void setStudent(Student student) { this.student = student; }
+
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
+
+    public String getFatherName() { return fatherName; }
+    public void setFatherName(String fatherName) { this.fatherName = fatherName; }
+
+    public String getFatherProfession() { return fatherProfession; }
+    public void setFatherProfession(String fatherProfession) { this.fatherProfession = fatherProfession; }
+
+    public String getFatherCompany() { return fatherCompany; }
+    public void setFatherCompany(String fatherCompany) { this.fatherCompany = fatherCompany; }
+
+    public String getFatherAddress() { return fatherAddress; }
+    public void setFatherAddress(String fatherAddress) { this.fatherAddress = fatherAddress; }
+
+    public String getFatherCity() { return fatherCity; }
+    public void setFatherCity(String fatherCity) { this.fatherCity = fatherCity; }
+
+    public String getFatherPhone() { return fatherPhone; }
+    public void setFatherPhone(String fatherPhone) { this.fatherPhone = fatherPhone; }
+
+    public String getMotherName() { return motherName; }
+    public void setMotherName(String motherName) { this.motherName = motherName; }
+
+    public String getMotherProfession() { return motherProfession; }
+    public void setMotherProfession(String motherProfession) { this.motherProfession = motherProfession; }
+
+    public String getMotherCompany() { return motherCompany; }
+    public void setMotherCompany(String motherCompany) { this.motherCompany = motherCompany; }
+
+    public String getMotherAddress() { return motherAddress; }
+    public void setMotherAddress(String motherAddress) { this.motherAddress = motherAddress; }
+
+    public String getMotherCity() { return motherCity; }
+    public void setMotherCity(String motherCity) { this.motherCity = motherCity; }
+
+    public String getMotherPhone() { return motherPhone; }
+    public void setMotherPhone(String motherPhone) { this.motherPhone = motherPhone; }
+
+    public String getEntryLevel() { return entryLevel; }
+    public void setEntryLevel(String entryLevel) { this.entryLevel = entryLevel; }
+
+    public String getPreviousDiplomaYear() { return previousDiplomaYear; }
+    public void setPreviousDiplomaYear(String previousDiplomaYear) { this.previousDiplomaYear = previousDiplomaYear; }
+
+    public String getPreviousDiplomaTitle() { return previousDiplomaTitle; }
+    public void setPreviousDiplomaTitle(String previousDiplomaTitle) { this.previousDiplomaTitle = previousDiplomaTitle; }
+
+    public String getPreviousSchool() { return previousSchool; }
+    public void setPreviousSchool(String previousSchool) { this.previousSchool = previousSchool; }
+
+    public String getPreviousSchoolCity() { return previousSchoolCity; }
+    public void setPreviousSchoolCity(String previousSchoolCity) { this.previousSchoolCity = previousSchoolCity; }
 }

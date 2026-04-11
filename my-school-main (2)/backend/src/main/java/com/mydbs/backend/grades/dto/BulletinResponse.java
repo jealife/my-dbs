@@ -28,6 +28,9 @@ public record BulletinResponse(
         String headTeacherComment,
         String councilDecision,
         LocalDateTime publishedAt,
+        /** Vue à plat (rétrocompatibilité) */
         List<GradeBookResponse> gradeBooks,
+        /** Vue groupée par UE — système LMD */
+        List<UeGradeGroupResponse> ueGroups,
         LocalDateTime createdAt
 ) {}

@@ -60,6 +60,7 @@ public class AdmissionServiceImpl implements AdmissionService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final com.mydbs.backend.academic.service.ClassRoomService classRoomService;
 
     @Value("${app.storage.local.base-dir:uploads}")
     private String baseDir;
@@ -73,7 +74,8 @@ public class AdmissionServiceImpl implements AdmissionService {
                                 StudentRepository studentRepository,
                                 UserRepository userRepository,
                                 PasswordEncoder passwordEncoder,
-                                EmailService emailService) {
+                                EmailService emailService,
+                                com.mydbs.backend.academic.service.ClassRoomService classRoomService) {
         this.applicationRepository = applicationRepository;
         this.documentRepository = documentRepository;
         this.noteRepository = noteRepository;
@@ -84,14 +86,24 @@ public class AdmissionServiceImpl implements AdmissionService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.classRoomService = classRoomService;
     }
 
     // ─────────────────────── CRUD APPLICATION ───────────────────────────────
 
     @Override
     public AdmissionApplicationResponse create(AdmissionApplicationCreateRequest request) {
+        // Validation du programId
+        if (request.programId() == null) {
+            throw new IllegalArgumentException("L'identifiant du programme est obligatoire");
+        }
+        
         Program program = findProgram(request.programId());
-        AcademicYear academicYear = findAcademicYear(request.academicYearId());
+        AcademicYear academicYear = request.academicYearId() != null
+                ? findAcademicYear(request.academicYearId())
+                : academicYearRepository.findByArchivedFalseOrderByStartDateDesc()
+                        .stream().findFirst()
+                        .orElseThrow(() -> new ResourceNotFoundException("Aucune annee academique active trouvee"));
 
         if (applicationRepository.existsByEmailAndAcademicYearIdAndProgramIdAndArchivedFalse(
                 request.email(), academicYear.getId(), program.getId())) {
@@ -106,10 +118,33 @@ public class AdmissionServiceImpl implements AdmissionService {
         app.setEmail(request.email());
         app.setPhoneNumber(request.phoneNumber());
         app.setDateOfBirth(request.dateOfBirth());
-        app.setNationality(request.nationality());
         app.setGender(request.gender());
+        app.setCityOfBirth(request.cityOfBirth());
+        app.setCountryOfBirth(request.countryOfBirth());
+        app.setDepartment(request.department());
+        app.setPostalCode(request.postalCode());
+        app.setNationality(request.nationality());
         app.setAddressLine(request.addressLine());
         app.setMotivationLetter(request.motivationLetter());
+        // Parents
+        app.setFatherName(request.fatherName());
+        app.setFatherProfession(request.fatherProfession());
+        app.setFatherCompany(request.fatherCompany());
+        app.setFatherAddress(request.fatherAddress());
+        app.setFatherCity(request.fatherCity());
+        app.setFatherPhone(request.fatherPhone());
+        app.setMotherName(request.motherName());
+        app.setMotherProfession(request.motherProfession());
+        app.setMotherCompany(request.motherCompany());
+        app.setMotherAddress(request.motherAddress());
+        app.setMotherCity(request.motherCity());
+        app.setMotherPhone(request.motherPhone());
+        // Parcours académique
+        app.setEntryLevel(request.entryLevel());
+        app.setPreviousDiplomaYear(request.previousDiplomaYear());
+        app.setPreviousDiplomaTitle(request.previousDiplomaTitle());
+        app.setPreviousSchool(request.previousSchool());
+        app.setPreviousSchoolCity(request.previousSchoolCity());
         app.setPriority(request.priority() != null ? request.priority() : ApplicationPriority.NORMAL);
         app.setStatus(ApplicationStatus.DRAFT);
         app.setProgram(program);
@@ -151,6 +186,7 @@ public class AdmissionServiceImpl implements AdmissionService {
         app.setGender(request.gender());
         app.setCityOfBirth(request.cityOfBirth());
         app.setCountryOfBirth(request.countryOfBirth());
+        app.setDepartment(request.department());
         app.setNationalIdNumber(request.nationalIdNumber());
         app.setPassportNumber(request.passportNumber());
         app.setAddressLine(request.addressLine());
@@ -158,6 +194,25 @@ public class AdmissionServiceImpl implements AdmissionService {
         app.setCountry(request.country());
         app.setPostalCode(request.postalCode());
         app.setMotivationLetter(request.motivationLetter());
+        // Parents
+        app.setFatherName(request.fatherName());
+        app.setFatherProfession(request.fatherProfession());
+        app.setFatherCompany(request.fatherCompany());
+        app.setFatherAddress(request.fatherAddress());
+        app.setFatherCity(request.fatherCity());
+        app.setFatherPhone(request.fatherPhone());
+        app.setMotherName(request.motherName());
+        app.setMotherProfession(request.motherProfession());
+        app.setMotherCompany(request.motherCompany());
+        app.setMotherAddress(request.motherAddress());
+        app.setMotherCity(request.motherCity());
+        app.setMotherPhone(request.motherPhone());
+        // Parcours académique
+        app.setEntryLevel(request.entryLevel());
+        app.setPreviousDiplomaYear(request.previousDiplomaYear());
+        app.setPreviousDiplomaTitle(request.previousDiplomaTitle());
+        app.setPreviousSchool(request.previousSchool());
+        app.setPreviousSchoolCity(request.previousSchoolCity());
 
         if (request.priority() != null) {
             app.setPriority(request.priority());
@@ -311,10 +366,19 @@ public class AdmissionServiceImpl implements AdmissionService {
     // ─────────────────────── PRIVATE HELPERS ────────────────────────────────
 
     private void validateTransition(ApplicationStatus current, ApplicationStatus target) {
+        // Un dossier peut être rejeté depuis n'importe quel état actif
+        if (target == ApplicationStatus.REJECTED) {
+            if (current == ApplicationStatus.REJECTED || current == ApplicationStatus.ENROLLED) {
+                throw new IllegalArgumentException(
+                        "Impossible de rejeter un dossier deja en statut " + current);
+            }
+            return;
+        }
+
         boolean valid = switch (current) {
             case DRAFT -> target == ApplicationStatus.PENDING_REVIEW;
             case PENDING_REVIEW -> target == ApplicationStatus.UNDER_REVIEW;
-            case UNDER_REVIEW -> target == ApplicationStatus.VALIDATED || target == ApplicationStatus.REJECTED;
+            case UNDER_REVIEW -> target == ApplicationStatus.VALIDATED;
             case VALIDATED -> target == ApplicationStatus.ENROLLED;
             case REJECTED, ENROLLED -> false;
         };
@@ -333,19 +397,33 @@ public class AdmissionServiceImpl implements AdmissionService {
             studentNumber = studentNumber + "-" + UUID.randomUUID().toString().substring(0, 4).toUpperCase();
         }
 
-        // Créer un compte User pour l'étudiant
-        User user = new User();
-        user.setFirstName(app.getFirstName());
-        user.setLastName(app.getLastName());
-        user.setEmail(app.getEmail());
-        user.setPhoneNumber(app.getPhoneNumber());
-        user.setRole(UserRole.STUDENT);
-        user.setStatus(UserStatus.ACTIVE);
-        // Mot de passe temporaire : prénom.numéroEtudiant — l'étudiant devra le changer
-        String tempPassword = app.getFirstName().toLowerCase() + "." + studentNumber;
-        user.setPassword(passwordEncoder.encode(tempPassword));
-        user.setUserCode(studentNumber);
-        User savedUser = userRepository.save(user);
+        // Créer ou récupérer un compte User pour l'étudiant
+        User user = userRepository.findByEmail(app.getEmail()).orElse(null);
+        if (user == null) {
+            user = new User();
+            user.setFirstName(app.getFirstName());
+            user.setLastName(app.getLastName());
+            user.setEmail(app.getEmail());
+            user.setPhoneNumber(app.getPhoneNumber());
+            user.setRole(UserRole.STUDENT);
+            user.setStatus(UserStatus.ACTIVE);
+            // Mot de passe temporaire : prénom.numéroEtudiant — l'étudiant devra le changer
+            String firstName = app.getFirstName() != null ? app.getFirstName() : "etudiant";
+            String tempPassword = firstName.toLowerCase() + "." + studentNumber;
+            user.setPassword(passwordEncoder.encode(tempPassword));
+            user.setUserCode(studentNumber);
+            user = userRepository.save(user);
+        } else {
+            // Si l'utilisateur existe déjà, on s'assure qu'il a le rôle STUDENT
+            user.setRole(UserRole.STUDENT);
+            user = userRepository.save(user);
+        }
+        User savedUser = user;
+
+        // Si un profil étudiant existe déjà pour cet utilisateur, le réutiliser
+        if (studentRepository.existsByUserId(savedUser.getId())) {
+            return studentRepository.findByUserId(savedUser.getId()).get();
+        }
 
         // Créer le profil étudiant
         Student student = new Student();
@@ -381,16 +459,48 @@ public class AdmissionServiceImpl implements AdmissionService {
         student.setAcademicYear(app.getAcademicYear());
         student.setProgram(app.getProgram());
         student.setCohort(app.getCohort());
+        
+        // Attribution automatique de classe
+        student.setClassRoom(classRoomService.getOrCreateAvailableClassRoom(app.getProgram(), app.getAcademicYear(), app.getCohort()));
 
         return studentRepository.save(student);
     }
 
     private String generateApplicationNumber() {
         int year = Year.now().getValue();
-        int seq = SEQUENCE.getAndIncrement();
-        // Pour une vrai production, on baserait le séquencement sur la BDD
-        long count = applicationRepository.count() + seq;
-        return String.format("ADM-%d-%05d", year, count);
+        String prefix = String.format("ADM-%d-", year);
+        
+        // Récupérer le dernier numéro de candidature pour cette année
+        String lastNumber = applicationRepository.findTopByApplicationNumberStartingWithOrderByApplicationNumberDesc(prefix)
+                .map(AdmissionApplication::getApplicationNumber)
+                .orElse(null);
+        
+        long nextSeq = 1;
+        if (lastNumber != null) {
+            try {
+                // Extraire le numéro de séquence du dernier numéro
+                String seqStr = lastNumber.substring(prefix.length());
+                nextSeq = Long.parseLong(seqStr) + 1;
+            } catch (NumberFormatException e) {
+                // En cas d'erreur de parsing, utiliser le count + sequence
+                nextSeq = applicationRepository.count() + SEQUENCE.getAndIncrement();
+            }
+        }
+        
+        // Générer le numéro et vérifier qu'il n'existe pas déjà
+        String applicationNumber;
+        int maxAttempts = 100;
+        int attempts = 0;
+        do {
+            applicationNumber = String.format("%s%05d", prefix, nextSeq);
+            nextSeq++;
+            attempts++;
+            if (attempts > maxAttempts) {
+                throw new IllegalStateException("Impossible de générer un numéro de candidature unique après " + maxAttempts + " tentatives");
+            }
+        } while (applicationRepository.existsByApplicationNumber(applicationNumber));
+        
+        return applicationNumber;
     }
 
     private String generateStudentNumber(AdmissionApplication app) {
@@ -455,10 +565,31 @@ public class AdmissionServiceImpl implements AdmissionService {
                 app.getEmail(),
                 app.getPhoneNumber(),
                 app.getDateOfBirth(),
-                app.getNationality(),
                 app.getGender(),
+                app.getCityOfBirth(),
+                app.getCountryOfBirth(),
+                app.getDepartment(),
+                app.getPostalCode(),
+                app.getNationality(),
                 app.getAddressLine(),
                 app.getMotivationLetter(),
+                app.getFatherName(),
+                app.getFatherProfession(),
+                app.getFatherCompany(),
+                app.getFatherAddress(),
+                app.getFatherCity(),
+                app.getFatherPhone(),
+                app.getMotherName(),
+                app.getMotherProfession(),
+                app.getMotherCompany(),
+                app.getMotherAddress(),
+                app.getMotherCity(),
+                app.getMotherPhone(),
+                app.getEntryLevel(),
+                app.getPreviousDiplomaYear(),
+                app.getPreviousDiplomaTitle(),
+                app.getPreviousSchool(),
+                app.getPreviousSchoolCity(),
                 app.getStatus(),
                 app.getPriority(),
                 app.getRejectionReason(),

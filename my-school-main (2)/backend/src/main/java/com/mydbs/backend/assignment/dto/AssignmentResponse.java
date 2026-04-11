@@ -12,7 +12,6 @@ public record AssignmentResponse(
         AssignmentType assignmentType,
         Double maxScore,
         Double passingScore,
-        Double coefficient,
         LocalDateTime dueDate,
         LocalDateTime availableFrom,
         boolean allowLateSubmission,

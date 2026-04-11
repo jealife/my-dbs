@@ -1,7 +1,8 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { UserCheck, Calendar, MessageSquare, Star, TrendingUp, Search, ArrowUpRight, Target, Clock, Loader2, Plus } from 'lucide-react'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { UserCheck, Calendar, MessageSquare, Star, TrendingUp, Search, ArrowUpRight, Target, Clock, Loader2, Plus, X, ClipboardList, CheckCircle } from 'lucide-react'
 import { GlassCard } from '@/components/ui/glass-card'
 import { useAuth } from '@/hooks/use-auth-hook'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -22,6 +23,12 @@ export function MentoringModuleView() {
   const queryClient = useQueryClient()
   const userId = user?.id || user?.userId
 
+  const [showBookingModal, setShowBookingModal] = useState(false)
+  const [showActionPlanModal, setShowActionPlanModal] = useState(false)
+  const [selectedMentorshipId, setSelectedMentorshipId] = useState(null)
+  const [bookingForm, setBookingForm] = useState({ topic: '', scheduledAt: '', duration: 60, notes: '' })
+  const [actionPlanForm, setActionPlanForm] = useState({ title: '', description: '', deadline: '' })
+
   const { data: mentorships = [], isLoading: loadingMentorships } = useQuery({
     queryKey: ['mentorships', userId, isMentor ? 'mentor' : 'mentee'],
     queryFn: () => isMentor
@@ -30,12 +37,41 @@ export function MentoringModuleView() {
     enabled: !!userId,
   })
 
-  // Get sessions from first mentorship
   const firstMentorshipId = mentorships[0]?.id
+  const activeMentorshipId = selectedMentorshipId || firstMentorshipId
+
   const { data: sessions = [], isLoading: loadingSessions } = useQuery({
-    queryKey: ['mentoring-sessions', firstMentorshipId],
-    queryFn: () => mentoringService.getSessions(firstMentorshipId),
-    enabled: !!firstMentorshipId,
+    queryKey: ['mentoring-sessions', activeMentorshipId],
+    queryFn: () => mentoringService.getSessions(activeMentorshipId),
+    enabled: !!activeMentorshipId,
+  })
+
+  const { data: actionPlans = [], isLoading: loadingPlans } = useQuery({
+    queryKey: ['mentoring-action-plans', activeMentorshipId],
+    queryFn: () => mentoringService.getActionPlans(activeMentorshipId),
+    enabled: !!activeMentorshipId,
+  })
+
+  const bookSessionMutation = useMutation({
+    mutationFn: (data) => mentoringService.planSession(activeMentorshipId, data),
+    onSuccess: () => {
+      toast.success('Session planifiée avec succès !')
+      queryClient.invalidateQueries({ queryKey: ['mentoring-sessions'] })
+      setShowBookingModal(false)
+      setBookingForm({ topic: '', scheduledAt: '', duration: 60, notes: '' })
+    },
+    onError: (err) => toast.error(`Erreur: ${err.message}`),
+  })
+
+  const createPlanMutation = useMutation({
+    mutationFn: (data) => mentoringService.createActionPlan(activeMentorshipId, data),
+    onSuccess: () => {
+      toast.success('Plan d\'action créé !')
+      queryClient.invalidateQueries({ queryKey: ['mentoring-action-plans'] })
+      setShowActionPlanModal(false)
+      setActionPlanForm({ title: '', description: '', deadline: '' })
+    },
+    onError: (err) => toast.error(`Erreur: ${err.message}`),
   })
 
   const upcomingSessions = sessions.filter(s => ['SCHEDULED', 'CONFIRMED'].includes(s.status))
@@ -51,7 +87,10 @@ export function MentoringModuleView() {
             {isMentor ? 'Gérez vos sessions d\'accompagnement et suivez vos étudiants.' : 'Connectez-vous avec des experts pour booster votre parcours.'}
           </p>
         </div>
-        <button className="px-6 py-3 rounded-2xl bg-primary text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/30 active:scale-95 transition-all self-start flex items-center gap-2">
+        <button
+          onClick={() => activeMentorshipId ? setShowBookingModal(true) : toast.error('Aucun mentorat actif trouvé.')}
+          className="px-6 py-3 rounded-2xl bg-primary text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/30 active:scale-95 transition-all self-start flex items-center gap-2"
+        >
           <Plus className="w-4 h-4" />
           {isMentor ? 'Nouvelle Disponibilité' : 'Réserver une séance'}
         </button>
@@ -170,6 +209,133 @@ export function MentoringModuleView() {
           </div>
         </GlassCard>
       </div>
+
+      {/* Action Plans Section */}
+      <GlassCard
+        title="Plans d'Action"
+        description="Objectifs et étapes de développement."
+        className="shadow-none border-none ring-1 ring-(--glass-border)"
+      >
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => activeMentorshipId ? setShowActionPlanModal(true) : toast.error('Aucun mentorat actif.')}
+            className="px-4 py-2 rounded-xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all flex items-center gap-2"
+          >
+            <Plus className="w-3 h-3" /> Nouveau Plan
+          </button>
+        </div>
+        <div className="space-y-3">
+          {loadingPlans ? (
+            <div className="flex flex-col items-center py-10 gap-3 opacity-40">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <p className="text-xs font-black uppercase tracking-widest italic">Chargement plans...</p>
+            </div>
+          ) : actionPlans.length === 0 ? (
+            <div className="py-10 text-center opacity-40">
+              <ClipboardList className="w-8 h-8 mx-auto mb-3 opacity-30" />
+              <p className="text-sm font-black italic uppercase tracking-widest">Aucun plan d&apos;action.</p>
+            </div>
+          ) : actionPlans.map(plan => (
+            <div key={plan.id} className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-900/40 border border-(--glass-border) flex items-center gap-4 hover:border-primary/50 transition-all">
+              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                plan.completed || plan.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+              )}>
+                {plan.completed || plan.status === 'COMPLETED' ? <CheckCircle className="w-5 h-5" /> : <Target className="w-5 h-5" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-sm tracking-tight truncate">{plan.title || plan.objective || `Plan #${plan.id}`}</h4>
+                <p className="text-[10px] font-medium opacity-50 italic truncate">{plan.description || '—'}</p>
+              </div>
+              <span className={cn("text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-widest shrink-0",
+                plan.completed || plan.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
+              )}>
+                {plan.completed || plan.status === 'COMPLETED' ? 'Terminé' : 'En cours'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* Booking Session Modal */}
+      <AnimatePresence>
+        {showBookingModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowBookingModal(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-slate-950 rounded-4xl shadow-2xl w-full max-w-md p-8 space-y-6 border border-(--glass-border)">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-black italic">{isMentor ? 'Planifier une séance' : 'Réserver une séance'}</h3>
+                <button onClick={() => setShowBookingModal(false)} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Sujet de la séance</label>
+                  <input type="text" value={bookingForm.topic} onChange={e => setBookingForm(p => ({ ...p, topic: e.target.value }))} placeholder="Ex: Orientation professionnelle" className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-(--glass-border) text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Date & Heure</label>
+                  <input type="datetime-local" value={bookingForm.scheduledAt} onChange={e => setBookingForm(p => ({ ...p, scheduledAt: e.target.value }))} className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-(--glass-border) text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Durée (minutes)</label>
+                  <select value={bookingForm.duration} onChange={e => setBookingForm(p => ({ ...p, duration: Number(e.target.value) }))} className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-(--glass-border) text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30">
+                    <option value={30}>30 min</option>
+                    <option value={45}>45 min</option>
+                    <option value={60}>1 heure</option>
+                    <option value={90}>1h30</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Notes (optionnel)</label>
+                  <textarea value={bookingForm.notes} onChange={e => setBookingForm(p => ({ ...p, notes: e.target.value }))} placeholder="Précisions ou objectifs..." rows={3} className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-(--glass-border) text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
+                </div>
+              </div>
+              <button
+                onClick={() => bookSessionMutation.mutate(bookingForm)}
+                disabled={bookSessionMutation.isPending || !bookingForm.topic || !bookingForm.scheduledAt}
+                className="w-full py-4 rounded-2xl bg-primary text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/30 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+              >
+                {bookSessionMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
+                {bookSessionMutation.isPending ? 'Planification...' : 'Confirmer la séance'}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Action Plan Modal */}
+      <AnimatePresence>
+        {showActionPlanModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowActionPlanModal(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-white dark:bg-slate-950 rounded-4xl shadow-2xl w-full max-w-md p-8 space-y-6 border border-(--glass-border)">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-black italic">Nouveau Plan d&apos;Action</h3>
+                <button onClick={() => setShowActionPlanModal(false)} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Objectif</label>
+                  <input type="text" value={actionPlanForm.title} onChange={e => setActionPlanForm(p => ({ ...p, title: e.target.value }))} placeholder="Ex: Améliorer les compétences en leadership" className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-(--glass-border) text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Description</label>
+                  <textarea value={actionPlanForm.description} onChange={e => setActionPlanForm(p => ({ ...p, description: e.target.value }))} placeholder="Étapes et détails du plan..." rows={4} className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-(--glass-border) text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Échéance</label>
+                  <input type="date" value={actionPlanForm.deadline} onChange={e => setActionPlanForm(p => ({ ...p, deadline: e.target.value }))} className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-(--glass-border) text-sm font-medium outline-none focus:ring-2 focus:ring-primary/30" />
+                </div>
+              </div>
+              <button
+                onClick={() => createPlanMutation.mutate({ title: actionPlanForm.title, objective: actionPlanForm.title, description: actionPlanForm.description, deadline: actionPlanForm.deadline })}
+                disabled={createPlanMutation.isPending || !actionPlanForm.title}
+                className="w-full py-4 rounded-2xl bg-primary text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/30 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+              >
+                {createPlanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ClipboardList className="w-4 h-4" />}
+                {createPlanMutation.isPending ? 'Création...' : 'Créer le plan'}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

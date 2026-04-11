@@ -39,9 +39,6 @@ public class Assignment extends BaseAuditEntity {
     @Column(name = "passing_score")
     private Double passingScore;
 
-    @Column(name = "coefficient", nullable = false)
-    private Double coefficient = 1.0;
-
     @Column(name = "due_date", nullable = false)
     private LocalDateTime dueDate;
 
@@ -99,8 +96,6 @@ public class Assignment extends BaseAuditEntity {
     public void setMaxScore(Double maxScore) { this.maxScore = maxScore; }
     public Double getPassingScore() { return passingScore; }
     public void setPassingScore(Double passingScore) { this.passingScore = passingScore; }
-    public Double getCoefficient() { return coefficient; }
-    public void setCoefficient(Double coefficient) { this.coefficient = coefficient; }
     public LocalDateTime getDueDate() { return dueDate; }
     public void setDueDate(LocalDateTime dueDate) { this.dueDate = dueDate; }
     public LocalDateTime getAvailableFrom() { return availableFrom; }

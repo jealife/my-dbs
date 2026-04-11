@@ -16,11 +16,14 @@ public record GradeBookResponse(
         String academicYearName,
         String semester,
         Double weightedAverage,
-        Double coefficient,
         Integer credits,
         boolean validated,
         Double passingGrade,
         String teacherAppreciation,
         List<GradeItemResponse> items,
-        java.time.LocalDateTime createdAt
+        java.time.LocalDateTime createdAt,
+        // LMD — UE parente
+        Long   teachingUnitId,
+        String teachingUnitCode,
+        String teachingUnitName
 ) {}

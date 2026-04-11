@@ -98,9 +98,9 @@ export function Header({ onMenuClick }) {
       const token = m.default.get('dbs_token')
       if (!token) return
 
-      const backendBase = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8080'
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api'
       eventSource = new EventSource(
-        `${backendBase}/api/v1/communications/notifications/stream?userId=${user.id}&token=${token}`
+        `${apiBase}/v1/communications/notifications/stream?userId=${user.id}&token=${token}`
       )
 
       // CONNECT event (silent — no sound/notif)

@@ -1,6 +1,8 @@
 package com.mydbs.backend.documents.controller;
 
 import com.mydbs.backend.common.response.ApiResponse;
+import com.mydbs.backend.documents.dto.DocumentAccessLogResponseDTO;
+import com.mydbs.backend.documents.dto.ManagedDocumentResponseDTO;
 import com.mydbs.backend.documents.model.*;
 import com.mydbs.backend.documents.service.impl.DocumentServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,7 +37,7 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN','ADMIN','SCHOOL_MANAGER','PEDAGOGICAL_MANAGER','TEACHER','STUDENT')")
     @Operation(summary = "Uploader un nouveau document (calcul SHA-256 automatique, versionning)")
-    public ApiResponse<ManagedDocument> upload(
+    public ApiResponse<ManagedDocumentResponseDTO> upload(
             @RequestPart("file") MultipartFile file,
             @RequestParam Long ownerId,
             @RequestParam DocumentType documentType,
@@ -72,7 +74,7 @@ public class DocumentController {
     @GetMapping("/search")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN','ADMIN','SCHOOL_MANAGER','PEDAGOGICAL_MANAGER','TEACHER','STUDENT')")
     @Operation(summary = "Rechercher des documents par type, propriétaire et/ou mot-clé (titre + tags)")
-    public ApiResponse<Page<ManagedDocument>> search(
+    public ApiResponse<Page<ManagedDocumentResponseDTO>> search(
             @RequestParam(required = false) DocumentType type,
             @RequestParam(required = false) Long ownerId,
             @RequestParam(required = false) String keyword,
@@ -84,7 +86,7 @@ public class DocumentController {
     @GetMapping("/owner/{ownerId}")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN','ADMIN','SCHOOL_MANAGER','PEDAGOGICAL_MANAGER','TEACHER','STUDENT')")
     @Operation(summary = "Documents d'un utilisateur (propriétaire)")
-    public ApiResponse<Page<ManagedDocument>> getByOwner(
+    public ApiResponse<Page<ManagedDocumentResponseDTO>> getByOwner(
             @PathVariable Long ownerId, @PageableDefault(size = 20) Pageable pageable) {
         return ApiResponse.success("Documents récupérés", documentService.getByOwner(ownerId, pageable));
     }
@@ -92,7 +94,7 @@ public class DocumentController {
     @GetMapping("/reference")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN','ADMIN','SCHOOL_MANAGER','PEDAGOGICAL_MANAGER','TEACHER')")
     @Operation(summary = "Documents liés à une entité (ex: referenceType=STUDENT&referenceId=42)")
-    public ApiResponse<List<ManagedDocument>> getByReference(
+    public ApiResponse<List<ManagedDocumentResponseDTO>> getByReference(
             @RequestParam String referenceType, @RequestParam Long referenceId) {
         return ApiResponse.success("Documents récupérés",
                 documentService.getByReference(referenceType, referenceId));
@@ -134,7 +136,7 @@ public class DocumentController {
     @GetMapping("/{documentId}/audit")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN','ADMIN','SCHOOL_MANAGER')")
     @Operation(summary = "Journal d'audit des accès à un document")
-    public ApiResponse<Page<DocumentAccessLog>> getAuditLog(
+    public ApiResponse<Page<DocumentAccessLogResponseDTO>> getAuditLog(
             @PathVariable Long documentId, @PageableDefault(size = 30) Pageable pageable) {
         return ApiResponse.success("Journal d'audit", documentService.getAuditLog(documentId, pageable));
     }

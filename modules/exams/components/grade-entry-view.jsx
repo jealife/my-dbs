@@ -182,7 +182,8 @@ export function GradeEntryView({ evaluation, onBack }) {
               ) : (
                 filteredStudents.map((student, i) => {
                   const sId = student.id;
-                  const currentGrade = grades[sId] || { score: '', comments: '' };
+                  const rawGrade = grades[sId];
+                  const currentGrade = { score: rawGrade?.score ?? '', comments: rawGrade?.comments ?? '', id: rawGrade?.id };
                   const isSaved = !!currentGrade.id;
                   const isReadOnly = isStudent || evaluation.status === 'RESULTS_PUBLISHED';
 

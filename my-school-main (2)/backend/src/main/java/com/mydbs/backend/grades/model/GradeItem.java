@@ -38,10 +38,6 @@ public class GradeItem extends BaseAuditEntity {
     @Column(name = "max_score", nullable = false)
     private Double maxScore = 20.0;
 
-    /** Coefficient de cette note dans le GradeBook */
-    @Column(name = "coefficient", nullable = false)
-    private Double coefficient = 1.0;
-
     @Column(name = "semester", length = 20)
     private String semester;
 
@@ -61,8 +57,6 @@ public class GradeItem extends BaseAuditEntity {
     public void setScore(Double score) { this.score = score; }
     public Double getMaxScore() { return maxScore; }
     public void setMaxScore(Double maxScore) { this.maxScore = maxScore; }
-    public Double getCoefficient() { return coefficient; }
-    public void setCoefficient(Double coefficient) { this.coefficient = coefficient; }
     public String getSemester() { return semester; }
     public void setSemester(String semester) { this.semester = semester; }
     public String getTeacherComment() { return teacherComment; }

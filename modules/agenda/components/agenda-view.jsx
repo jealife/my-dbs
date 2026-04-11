@@ -42,7 +42,7 @@ export function AgendaModuleView() {
   const queryClient = useQueryClient()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [showNewEvent, setShowNewEvent] = useState(false)
-  const [eventForm, setEventForm] = useState({ title: '', eventType: 'COURSE_SESSION', startAt: '', endAt: '', location: '' })
+  const [eventForm, setEventForm] = useState({ title: '', eventType: 'COURSE_SESSION', startAt: '', endAt: '', location: '', cohortId: '' })
 
   const createEventMutation = useMutation({
     mutationFn: () => planningService.createEvent({
@@ -51,12 +51,14 @@ export function AgendaModuleView() {
       startAt: eventForm.startAt,
       endAt: eventForm.endAt,
       location: eventForm.location,
+      teacherId: userId,
+      ...(eventForm.cohortId && { cohortId: Number(eventForm.cohortId) }),
     }),
     onSuccess: () => {
       toast.success('Événement créé !')
       queryClient.invalidateQueries({ queryKey: ['agenda'] })
       setShowNewEvent(false)
-      setEventForm({ title: '', eventType: 'COURSE_SESSION', startAt: '', endAt: '', location: '' })
+      setEventForm({ title: '', eventType: 'COURSE_SESSION', startAt: '', endAt: '', location: '', cohortId: '' })
     },
     onError: (err) => toast.error(`Erreur: ${err.message}`),
   })
@@ -64,12 +66,24 @@ export function AgendaModuleView() {
   const { from, to, monday, sunday } = useMemo(() => getWeekBounds(currentDate), [currentDate])
 
   const userId = user?.id || user?.userId
+  const cohortId = user?.cohortId || user?.classRoomId || user?.classId || null
 
-  const { data: events = [], isLoading, error, refetch } = useQuery({
+  const { data: personalEvents = [], isLoading, error, refetch } = useQuery({
     queryKey: ['agenda', userId, from, to],
     queryFn: () => planningService.getMyAgenda(userId, from, to),
     enabled: !!userId,
   })
+
+  const { data: cohortEvents = [] } = useQuery({
+    queryKey: ['agenda-cohort', cohortId, from, to],
+    queryFn: () => planningService.getCohortAgenda(cohortId, from, to),
+    enabled: !!cohortId,
+  })
+
+  const events = [
+    ...personalEvents,
+    ...cohortEvents.filter(ce => !personalEvents.some(pe => pe.id === ce.id)),
+  ]
 
   if (error) return (
     <div className="p-4">
@@ -281,11 +295,19 @@ export function AgendaModuleView() {
                     className="w-full mt-1 p-3 rounded-2xl glass-card border border-(--glass-border) focus:border-primary/50 text-sm font-medium outline-none bg-transparent" />
                 </div>
               </div>
-              <div>
-                <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Lieu (optionnel)</label>
-                <input type="text" placeholder="Ex: Salle A102" value={eventForm.location}
-                  onChange={e => setEventForm({ ...eventForm, location: e.target.value })}
-                  className="w-full mt-1 p-4 rounded-2xl glass-card border border-(--glass-border) focus:border-primary/50 text-sm font-medium outline-none bg-transparent" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Lieu (optionnel)</label>
+                  <input type="text" placeholder="Ex: Salle A102" value={eventForm.location}
+                    onChange={e => setEventForm({ ...eventForm, location: e.target.value })}
+                    className="w-full mt-1 p-3 rounded-2xl glass-card border border-(--glass-border) focus:border-primary/50 text-sm font-medium outline-none bg-transparent" />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">ID Cohorte (optionnel)</label>
+                  <input type="number" placeholder="Ex: 3" value={eventForm.cohortId}
+                    onChange={e => setEventForm({ ...eventForm, cohortId: e.target.value })}
+                    className="w-full mt-1 p-3 rounded-2xl glass-card border border-(--glass-border) focus:border-primary/50 text-sm font-medium outline-none bg-transparent" />
+                </div>
               </div>
             </div>
             <div className="flex gap-3">

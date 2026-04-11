@@ -12,10 +12,12 @@ import com.mydbs.backend.course.repository.LessonRepository;
 import com.mydbs.backend.course.repository.SessionRepository;
 import com.mydbs.backend.course.service.SessionService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class SessionServiceImpl implements SessionService {
 
     private final SessionRepository sessionRepository;
@@ -61,6 +63,7 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SessionResponse> getByCourse(Long courseId) {
         return sessionRepository.findByCourseIdAndArchivedFalseOrderByStartAtAsc(courseId)
                 .stream().map(this::map).toList();

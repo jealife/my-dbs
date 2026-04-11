@@ -19,6 +19,7 @@ public record ClassRoomResponse(
         String programName,
         Long cohortId,
         String cohortName,
+        Long studentCount,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         String createdBy,

@@ -2,6 +2,7 @@ package com.mydbs.backend.student.service.impl;
 
 import com.mydbs.backend.academic.model.AcademicYear;
 import com.mydbs.backend.academic.model.ClassRoom;
+import com.mydbs.backend.academic.model.ClassRoomStatus;
 import com.mydbs.backend.academic.model.Cohort;
 import com.mydbs.backend.academic.model.Program;
 import com.mydbs.backend.academic.repository.AcademicYearRepository;
@@ -37,6 +38,7 @@ public class StudentServiceImpl implements StudentService {
     private final CohortRepository cohortRepository;
     private final ClassRoomRepository classRoomRepository;
     private final UserRepository userRepository;
+    private final com.mydbs.backend.academic.service.ClassRoomService classRoomService;
 
     public StudentServiceImpl(StudentRepository studentRepository,
                               GuardianContactRepository guardianContactRepository,
@@ -46,7 +48,8 @@ public class StudentServiceImpl implements StudentService {
                               ProgramRepository programRepository,
                               CohortRepository cohortRepository,
                               ClassRoomRepository classRoomRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository,
+                              com.mydbs.backend.academic.service.ClassRoomService classRoomService) {
         this.studentRepository = studentRepository;
         this.guardianContactRepository = guardianContactRepository;
         this.emergencyContactRepository = emergencyContactRepository;
@@ -56,6 +59,7 @@ public class StudentServiceImpl implements StudentService {
         this.cohortRepository = cohortRepository;
         this.classRoomRepository = classRoomRepository;
         this.userRepository = userRepository;
+        this.classRoomService = classRoomService;
     }
 
     @Override
@@ -68,7 +72,9 @@ public class StudentServiceImpl implements StudentService {
         AcademicYear academicYear = getAcademicYear(request.academicYearId());
         Program program = getProgram(request.programId());
         Cohort cohort = getCohort(request.cohortId());
-        ClassRoom classRoom = getClassRoom(request.classRoomId());
+        ClassRoom classRoom = request.classRoomId() != null
+                ? getClassRoom(request.classRoomId())
+                : classRoomService.getOrCreateAvailableClassRoom(program, academicYear, cohort);
 
         Student student = new Student();
         applyStudentData(student, request.studentNumber(), request.admissionNumber(), request.registrationNumber(),
@@ -130,7 +136,10 @@ public class StudentServiceImpl implements StudentService {
         AcademicYear academicYear = getAcademicYear(request.academicYearId());
         Program program = getProgram(request.programId());
         Cohort cohort = getCohort(request.cohortId());
-        ClassRoom classRoom = getClassRoom(request.classRoomId());
+        Long currentClassRoomId = student.getClassRoom() != null ? student.getClassRoom().getId() : null;
+        ClassRoom classRoom = request.classRoomId() != null
+                ? getClassRoom(request.classRoomId(), currentClassRoomId)
+                : classRoomService.getOrCreateAvailableClassRoom(program, academicYear, cohort);
 
         StudentStatus oldStatus = student.getStatus();
 
@@ -374,11 +383,84 @@ public class StudentServiceImpl implements StudentService {
     }
 
     private ClassRoom getClassRoom(Long classRoomId) {
+        return getClassRoom(classRoomId, null);
+    }
+
+    /**
+     * Récupère la classe demandée. Si elle est pleine et que l'étudiant change de classe,
+     * cherche une classe sœur avec de la place ou en crée une nouvelle automatiquement.
+     */
+    private ClassRoom getClassRoom(Long classRoomId, Long currentClassRoomId) {
         if (classRoomId == null) {
             return null;
         }
-        return classRoomRepository.findById(classRoomId)
+        ClassRoom classRoom = classRoomRepository.findById(classRoomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Classe introuvable avec l'id : " + classRoomId));
+
+        // Pas de changement de classe → on ne touche pas à la capacité
+        if (classRoomId.equals(currentClassRoomId)) {
+            return classRoom;
+        }
+        // Pas de limite de capacité → OK
+        if (classRoom.getCapacity() == null) {
+            return classRoom;
+        }
+
+        long count = classRoomRepository.countStudentsByClassRoomId(classRoomId);
+        if (count < classRoom.getCapacity()) {
+            return classRoom;
+        }
+
+        // Classe pleine → résolution automatique
+        return resolveOverflowClassRoom(classRoom);
+    }
+
+    /**
+     * Cherche parmi les classes sœurs (même programme, même année) une place disponible.
+     * Si toutes sont pleines, crée une nouvelle classe avec un code incrémenté.
+     */
+    private ClassRoom resolveOverflowClassRoom(ClassRoom original) {
+        List<ClassRoom> siblings = classRoomRepository.findByProgramAndAcademicYear(
+                original.getProgram().getId(), original.getAcademicYear().getId());
+
+        for (ClassRoom sibling : siblings) {
+            if (sibling.getCapacity() == null) {
+                return sibling;
+            }
+            long siblingCount = classRoomRepository.countStudentsByClassRoomId(sibling.getId());
+            if (siblingCount < sibling.getCapacity()) {
+                return sibling;
+            }
+        }
+
+        // Toutes les classes sont pleines → création automatique
+        ClassRoom newClass = new ClassRoom();
+        newClass.setName(original.getName() + " (" + (siblings.size() + 1) + ")");
+        newClass.setCode(generateNextCode(original.getCode()));
+        newClass.setCapacity(original.getCapacity());
+        newClass.setDeliveryMode(original.getDeliveryMode());
+        newClass.setRoomLabel(original.getRoomLabel());
+        newClass.setDescription(original.getDescription());
+        newClass.setAcademicYear(original.getAcademicYear());
+        newClass.setProgram(original.getProgram());
+        newClass.setCohort(original.getCohort());
+        newClass.setStatus(ClassRoomStatus.ACTIVE);
+        return classRoomRepository.save(newClass);
+    }
+
+    /**
+     * Génère un code unique en ajoutant/incrémentant un suffixe numérique.
+     * Exemple : "INFO-A" → "INFO-A-2", puis "INFO-A-3", etc.
+     */
+    private String generateNextCode(String baseCode) {
+        String base = baseCode.replaceAll("-\\d+$", "");
+        int suffix = 2;
+        String candidate = base + "-" + suffix;
+        while (classRoomRepository.existsByCodeIgnoreCase(candidate)) {
+            suffix++;
+            candidate = base + "-" + suffix;
+        }
+        return candidate;
     }
 
     private StudentResponse map(Student student) {
