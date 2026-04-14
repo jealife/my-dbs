@@ -8,6 +8,7 @@ public class AuthResponse {
     private String accessToken;
     private String tokenType;
     private Long userId;
+    private Long studentId;
     private String userCode;
     private String firstName;
     private String lastName;
@@ -40,6 +41,14 @@ public class AuthResponse {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public Long getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(Long studentId) {
+        this.studentId = studentId;
     }
 
     public String getUserCode() {

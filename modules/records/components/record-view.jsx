@@ -11,6 +11,7 @@ import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth-hook'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useStudentId } from '@/hooks/use-student-id'
 import { attendanceService } from '@/lib/attendance-service'
 import { gradesService } from '@/lib/grades-service'
 import { formatDateFr } from '@/lib/api-helpers'
@@ -257,7 +258,7 @@ export function RecordModuleView() {
   const [justifyFile, setJustifyFile] = useState(null)
   const fileRef = useRef(null)
 
-  const studentId = user?.id || user?.userId
+  const studentId = useStudentId()
 
   const justifyMutation = useMutation({
     mutationFn: () => {
@@ -314,8 +315,12 @@ export function RecordModuleView() {
           <p className="text-muted-foreground mt-1 font-medium italic opacity-60">Absences, présences et bulletins de notes LMD.</p>
         </div>
         <div className="flex flex-wrap gap-4">
-          <a href={`/api/v1/pdf/transcripts/${studentId}`} target="_blank" rel="noreferrer"
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl glass-card border-(--glass-border) font-black text-xs uppercase tracking-widest hover:border-primary/50 transition-all">
+          <a
+            suppressHydrationWarning
+            href={studentId ? `/api/v1/pdf/transcripts/${studentId}` : undefined}
+            target="_blank" rel="noreferrer"
+            aria-disabled={!studentId}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl glass-card border-(--glass-border) font-black text-xs uppercase tracking-widest transition-all ${studentId ? 'hover:border-primary/50' : 'opacity-40 pointer-events-none'}`}>
             <FileText className="w-4.5 h-4.5" />
             Relevé Général PDF
           </a>

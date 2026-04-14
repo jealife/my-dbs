@@ -114,6 +114,16 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional(readOnly = true)
+    public StudentResponse getByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable : " + email));
+        Student student = studentRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Profil étudiant introuvable pour : " + email));
+        return map(student);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<StudentResponse> getByClassRoom(Long classRoomId) {
         return studentRepository.findByClassRoomIdAndArchivedFalseOrderByLastNameAscFirstNameAsc(classRoomId)
                 .stream()

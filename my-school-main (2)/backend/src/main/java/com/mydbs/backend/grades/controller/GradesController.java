@@ -44,10 +44,10 @@ public class GradesController {
 
     @GetMapping("/grade-books/students/{studentId}")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN','ADMIN','PEDAGOGICAL_MANAGER','SCHOOL_MANAGER','TEACHER','STUDENT')")
-    @Operation(summary = "Tous les carnets de notes d'un étudiant pour une année académique")
+    @Operation(summary = "Tous les carnets de notes d'un étudiant (toutes années si academicYearId omis)")
     public ApiResponse<List<GradeBookResponse>> getStudentGradeBooks(
             @PathVariable Long studentId,
-            @RequestParam Long academicYearId) {
+            @RequestParam(required = false) Long academicYearId) {
         return ApiResponse.success("Carnets de notes récupérés",
                 gradesService.getStudentGradeBooks(studentId, academicYearId));
     }

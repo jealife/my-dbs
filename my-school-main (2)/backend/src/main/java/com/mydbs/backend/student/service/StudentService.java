@@ -15,6 +15,8 @@ public interface StudentService {
 
     StudentResponse getById(Long id);
 
+    StudentResponse getByEmail(String email);
+
     List<StudentResponse> getByClassRoom(Long classRoomId);
 
     StudentResponse update(Long id, StudentUpdateRequest request);

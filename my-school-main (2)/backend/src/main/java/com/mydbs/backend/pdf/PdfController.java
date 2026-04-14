@@ -35,10 +35,10 @@ public class PdfController {
 
     @GetMapping("/transcripts/{studentId}")
     @PreAuthorize("hasAnyAuthority('SUPER_ADMIN','ADMIN','PEDAGOGICAL_MANAGER','SCHOOL_MANAGER','TEACHER','STUDENT')")
-    @Operation(summary = "Télécharger le relevé de notes officiel d'un étudiant en PDF")
+    @Operation(summary = "Télécharger le relevé de notes officiel d'un étudiant en PDF (toutes années si academicYearId omis)")
     public ResponseEntity<byte[]> downloadTranscriptPdf(
             @PathVariable Long studentId,
-            @RequestParam Long academicYearId) {
+            @RequestParam(required = false) Long academicYearId) {
         byte[] pdf = pdfService.generateTranscriptPdf(studentId, academicYearId);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"releve_" + studentId + ".pdf\"")

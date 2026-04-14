@@ -25,6 +25,13 @@ public interface GradeBookRepository extends JpaRepository<GradeBook, Long> {
     @Query("SELECT gb FROM GradeBook gb " +
            "LEFT JOIN FETCH gb.course c " +
            "LEFT JOIN FETCH c.teachingUnit " +
+           "WHERE gb.student.id = :studentId AND gb.archived = false ORDER BY c.title ASC")
+    List<GradeBook> findByStudentIdAndArchivedFalseOrderByCourseTitle(
+            @Param("studentId") Long studentId);
+
+    @Query("SELECT gb FROM GradeBook gb " +
+           "LEFT JOIN FETCH gb.course c " +
+           "LEFT JOIN FETCH c.teachingUnit " +
            "WHERE gb.student.id = :studentId AND gb.academicYear.id = :academicYearId " +
            "AND gb.semester = :semester AND gb.archived = false " +
            "ORDER BY c.title ASC")

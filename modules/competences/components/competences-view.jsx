@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Award, Star, Target, Plus, BookOpen, ChevronRight, Loader2, Check, Trophy, Zap, X } from 'lucide-react'
 import { GlassCard } from '@/components/ui/glass-card'
 import { useAuth } from '@/hooks/use-auth-hook'
+import { useStudentId } from '@/hooks/use-student-id'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { competencesService } from '@/lib/competences-service'
 import { cn } from '@/lib/utils'
@@ -29,7 +30,7 @@ const LEVEL_PROGRESS = { BEGINNER: 25, INTERMEDIATE: 50, ADVANCED: 75, EXPERT: 1
 export function CompetencesModuleView() {
   const { user, isAdmin, isTeacher } = useAuth()
   const queryClient = useQueryClient()
-  const studentId = user?.id || user?.userId
+  const studentId = useStudentId()
 
   const [showCreateCompetence, setShowCreateCompetence] = useState(false)
   const [showAwardBadge, setShowAwardBadge] = useState(false)

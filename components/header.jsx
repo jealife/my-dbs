@@ -93,14 +93,14 @@ export function Header({ onMenuClick }) {
     window.addEventListener('refresh-notifs', handleRefresh)
 
     // SSE real-time stream
+    // Le cookie dbs_token (HttpOnly) est envoyé automatiquement par le navigateur
+    // — le token ne doit jamais transiter dans l'URL (logs, historique, referrer)
     let eventSource
-    import('js-cookie').then(m => {
-      const token = m.default.get('dbs_token')
-      if (!token) return
-
+    import('js-cookie').then(() => {
       const apiBase = process.env.NEXT_PUBLIC_API_URL || '/api'
       eventSource = new EventSource(
-        `${apiBase}/v1/communications/notifications/stream?userId=${user.id}&token=${token}`
+        `${apiBase}/v1/communications/notifications/stream?userId=${user.id}`,
+        { withCredentials: true }
       )
 
       // CONNECT event (silent — no sound/notif)
@@ -221,6 +221,9 @@ export function Header({ onMenuClick }) {
             <div className="relative">
               <button
                 onClick={() => setShowNotifs(!showNotifs)}
+                aria-label={unreadCount > 0 ? `Notifications (${unreadCount} non lues)` : 'Notifications'}
+                aria-expanded={showNotifs}
+                aria-haspopup="true"
                 className="relative p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95 group"
               >
                 <Bell className="w-5.5 h-5.5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -373,7 +376,7 @@ export function Header({ onMenuClick }) {
     {/* Notification detail modal */}
     <AnimatePresence>
       {selectedNotif && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

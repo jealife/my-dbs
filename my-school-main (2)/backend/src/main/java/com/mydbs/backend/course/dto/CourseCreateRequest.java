@@ -9,7 +9,6 @@ public record CourseCreateRequest(
         @NotBlank(message = "Le titre est obligatoire")
         String title,
 
-        @NotBlank(message = "Le code est obligatoire")
         String code,
 
         String courseSheet,

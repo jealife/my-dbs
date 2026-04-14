@@ -12,21 +12,16 @@ export function Providers({ children }) {
   const [appLoading, setAppLoading] = useState(true)
 
   useEffect(() => {
-    // Minimum 2s splash screen for brand consistency and initialization
     const timer = setTimeout(() => {
       setAppLoading(false)
-      // Request browser notification permission after splash (if not yet decided)
       if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission()
       }
-    }, 2500)
+    }, 800)
 
     if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(
-          (reg) => console.log('[MyDBS] PWA ServiceWorker: Registered', reg.scope),
-          (err) => console.log('[MyDBS] PWA ServiceWorker: Failed', err)
-        );
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
       });
     }
 
@@ -57,7 +52,7 @@ export function Providers({ children }) {
           {children}
         </main>
         <Toaster position="top-right" />
-        <ReactQueryDevtools initialIsOpen={false} />
+        {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </ThemeProvider>
   )

@@ -74,7 +74,6 @@ function normalizeRole(user) {
   if (user.userType) return user.userType.replace('ROLE_', '').toUpperCase()
   if (user.type) return user.type.replace('ROLE_', '').toUpperCase()
 
-  console.warn('[MyDBS] Impossible de détecter le rôle dans:', user)
   return ''
 }
 
@@ -86,25 +85,38 @@ export function useAuth() {
   const refreshUser = async () => {
     const raw = typeof window !== 'undefined' ? localStorage.getItem('dbs_user') : null
     const currentUser = user || (raw ? JSON.parse(raw) : null)
-    
+
     if (!currentUser?.id) return
-    console.log('[MyDBS] Refreshing user data for ID:', currentUser.id)
-    
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || '/api'}/users/${currentUser.id}`, {
-        headers: {
-          'Authorization': `Bearer ${Cookies.get('dbs_token')}`
-        }
+      const base = process.env.NEXT_PUBLIC_API_URL || '/api'
+      // Le cookie HttpOnly dbs_token est envoyé automatiquement par le navigateur
+      const response = await fetch(`${base}/users/${currentUser.id}`, {
+        credentials: 'include',
       })
+      if (!response.ok) return
       const result = await response.json()
-      if (result.data) {
-        console.log('[MyDBS] Normalized user received:', result.data.firstName, result.data.lastName)
-        const normalized = normalizeUser(result.data)
-        localStorage.setItem('dbs_user', JSON.stringify(normalized))
-        setUser(normalized)
+      if (!result.data) return
+
+      let normalized = normalizeUser(result.data)
+
+      // Résoudre studentId pour les étudiants s'il n'est pas encore connu
+      if (normalized.role === 'STUDENT' && !normalized.studentId) {
+        try {
+          const studentRes = await fetch(`${base}/students/me`, { credentials: 'include' })
+          if (studentRes.ok) {
+            const studentData = await studentRes.json()
+            if (studentData.data?.id) normalized = { ...normalized, studentId: studentData.data.id }
+          }
+        } catch {
+          // non bloquant
+        }
       }
+
+      localStorage.setItem('dbs_user', JSON.stringify(normalized))
+      setUser(normalized)
     } catch (e) {
-      console.error("[MyDBS] Refresh error:", e)
+      console.error('[MyDBS] Erreur rafraîchissement utilisateur:', e.message)
     }
   }
 
@@ -112,21 +124,20 @@ export function useAuth() {
     const checkAuth = () => {
       try {
         const raw = typeof window !== 'undefined' ? localStorage.getItem('dbs_user') : null
-        const token = Cookies.get('dbs_token')
+        // dbs_session est le cookie JS-accessible (pas HttpOnly) qui indique l'état de connexion.
+        // dbs_token (HttpOnly) est utilisé côté serveur uniquement.
+        const hasSession = !!Cookies.get('dbs_session')
 
-        if (raw && token) {
+        if (raw && hasSession) {
           const parsed = JSON.parse(raw)
           const normalized = normalizeUser(parsed)
           setUser(normalized)
-          console.log('[MyDBS] Local storage user loaded:', normalized.first_name, normalized.last_name)
-        } else if (raw && !token) {
-          // Stale localStorage without a valid token — clear it and let the user re-login
+        } else if (raw && !hasSession) {
+          // Profil en localStorage mais pas de session active — nettoyage
           localStorage.removeItem('dbs_user')
           if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
             window.location.href = '/login?expired=true'
           }
-        } else if (token) {
-          setUser({ role: 'ADMIN', first_name: 'Admin', last_name: '', user_code: '' })
         }
       } catch (e) {
         console.error('[MyDBS] Erreur lecture user:', e)
@@ -135,15 +146,14 @@ export function useAuth() {
     }
 
     checkAuth()
-    
-    // Auto-refresh once on load if we have a token
-    if (Cookies.get('dbs_token')) {
-       refreshUser()
+
+    if (Cookies.get('dbs_session')) {
+      refreshUser()
     }
   }, [])
 
-  const logout = () => {
-    authService.logout()
+  const logout = async () => {
+    await authService.logout()
     setUser(null)
     router.push('/login')
   }

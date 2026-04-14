@@ -111,7 +111,9 @@ public class CourseServiceImpl implements CourseService {
         applyCourseData(course, request.title(), request.code(), request.courseSheet(), request.objectives(),
                 request.prerequisites(), request.syllabus(), request.description(), request.credits(),
                 request.totalHours(), request.academicYearId(), request.programId(),
-                request.classRoomId(), request.instructorUserId(), request.status(), request.visibility(),
+                request.classRoomId(), request.instructorUserId(), 
+                request.status() != null ? request.status() : course.getStatus(), 
+                request.visibility() != null ? request.visibility() : course.getVisibility(),
                 request.semester(), request.teachingUnitId());
 
         return map(courseRepository.save(course));

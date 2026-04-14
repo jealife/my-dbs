@@ -9,7 +9,6 @@ public record CourseUpdateRequest(
         @NotBlank(message = "Le titre est obligatoire")
         String title,
 
-        @NotBlank(message = "Le code est obligatoire")
         String code,
 
         String courseSheet,
@@ -33,10 +32,8 @@ public record CourseUpdateRequest(
         Long classRoomId,
         Long instructorUserId,
 
-        @NotNull(message = "Le statut est obligatoire")
         CourseStatus status,
 
-        @NotNull(message = "La visibilite est obligatoire")
         CourseVisibility visibility,
 
         String semester,

@@ -7,6 +7,8 @@ import com.mydbs.backend.student.dto.StudentStatusUpdateRequest;
 import com.mydbs.backend.student.dto.StudentUpdateRequest;
 import com.mydbs.backend.student.service.StudentService;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +27,11 @@ public class StudentController {
     @PostMapping
     public ApiResponse<StudentResponse> create(@Valid @RequestBody StudentCreateRequest request) {
         return ApiResponse.success("Etudiant cree avec succes", studentService.create(request));
+    }
+
+    @GetMapping("/me")
+    public ApiResponse<StudentResponse> getMe(@AuthenticationPrincipal UserDetails principal) {
+        return ApiResponse.success("Profil etudiant recupere", studentService.getByEmail(principal.getUsername()));
     }
 
     @GetMapping

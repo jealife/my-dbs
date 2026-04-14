@@ -6,7 +6,6 @@ import { Lock, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2, School, User,
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard } from '@/components/ui/glass-card'
 import axios from 'axios'
-import Cookies from 'js-cookie'
 
 const STEPS = [
   { id: 1, label: 'Bienvenue', description: 'Vérification de votre identité' },
@@ -98,11 +97,16 @@ export default function PremiereConnexionPage() {
         phone: phone || undefined,
       })
 
-      // Sauvegarder la session si le backend retourne un token
+      // Déléguer la pose du cookie HttpOnly au serveur — jamais côté client
       const data = res.data?.data || res.data || {}
-      if (data.accessToken || data.token) {
-        Cookies.set('dbs_token', data.accessToken || data.token, { expires: 1, path: '/' })
+      const token = data.accessToken || data.token
+
+      if (token) {
+        await axios.post('/api/auth/session', { token, user: data.user || null }, {
+          withCredentials: true,
+        })
       }
+
       if (data.user) {
         localStorage.setItem('dbs_user', JSON.stringify(data.user))
       }

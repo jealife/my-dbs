@@ -93,13 +93,14 @@ public class GradesServiceImpl {
 
     @Transactional(readOnly = true)
     public List<GradeBookResponse> getStudentGradeBooks(Long studentId, Long academicYearId) {
-        return gradeBookRepository.findByStudentIdAndAcademicYearIdAndArchivedFalseOrderByCourseTitle(
-                        studentId, academicYearId)
-                .stream().map(gb -> {
-                    List<GradeItem> items = gradeItemRepository
-                            .findByGradeBookIdAndArchivedFalseOrderByCreatedAtDesc(gb.getId());
-                    return toGradeBookResponse(gb, items);
-                }).toList();
+        List<GradeBook> books = academicYearId != null
+                ? gradeBookRepository.findByStudentIdAndAcademicYearIdAndArchivedFalseOrderByCourseTitle(studentId, academicYearId)
+                : gradeBookRepository.findByStudentIdAndArchivedFalseOrderByCourseTitle(studentId);
+        return books.stream().map(gb -> {
+            List<GradeItem> items = gradeItemRepository
+                    .findByGradeBookIdAndArchivedFalseOrderByCreatedAtDesc(gb.getId());
+            return toGradeBookResponse(gb, items);
+        }).toList();
     }
 
     public GradeBookResponse updateTeacherAppreciation(Long gradeBookId, String appreciation) {
@@ -230,12 +231,14 @@ public class GradesServiceImpl {
 
     @Transactional(readOnly = true)
     public BulletinResponse getStudentBulletin(Long studentId, Long academicYearId, String semester) {
-        Bulletin bulletin = bulletinRepository
+        return bulletinRepository
                 .findByStudentIdAndSemesterAndAcademicYearIdAndArchivedFalse(studentId, semester, academicYearId)
-                .orElseThrow(() -> new ResourceNotFoundException("Bulletin introuvable pour cet étudiant"));
-        List<GradeBook> gbs = gradeBookRepository
-                .findByStudentIdAndAcademicYearIdAndArchivedFalseOrderByCourseTitle(studentId, academicYearId);
-        return toBulletinResponse(bulletin, gbs);
+                .map(bulletin -> {
+                    List<GradeBook> gbs = gradeBookRepository
+                            .findByStudentIdAndAcademicYearIdAndArchivedFalseOrderByCourseTitle(studentId, academicYearId);
+                    return toBulletinResponse(bulletin, gbs);
+                })
+                .orElse(null);
     }
 
     @Transactional(readOnly = true)

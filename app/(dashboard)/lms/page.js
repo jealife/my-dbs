@@ -31,6 +31,7 @@ const EMPTY_FORM = {
   title: '', code: '', description: '', objectives: '',
   credits: '', totalHours: '',
   academicYearId: '', programId: '',
+  status: null, visibility: null,
 }
 
 export default function LMSPage() {
@@ -168,6 +169,8 @@ export default function LMSPage() {
       totalHours: Number(form.totalHours),
       academicYearId: Number(form.academicYearId),
       programId: Number(form.programId),
+      status: form.status || null,
+      visibility: form.visibility || null,
     }
 
     if (isTeacher && userId) {
@@ -191,6 +194,8 @@ export default function LMSPage() {
       totalHours: course.totalHours?.toString() || '',
       academicYearId: course.academicYearId?.toString() || '',
       programId: course.programId?.toString() || '',
+      status: course.status || null,
+      visibility: course.visibility || null,
     })
     setShowEdit(course.id)
   }

@@ -2,6 +2,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 
 import { Providers } from "@/components/providers";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -55,9 +56,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
-        <Providers>
-          {children}
-        </Providers>
+        <ErrorBoundary>
+          <Providers>
+            {children}
+          </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );

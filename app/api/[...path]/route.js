@@ -1,9 +1,27 @@
 import { cookies } from 'next/headers';
+import { validateEnv } from '@/lib/env-validation';
+
+validateEnv();
 
 const BACKEND =
   process.env.BACKEND_BASE_URL ||
   process.env.NEXT_PUBLIC_BACKEND_BASE_URL ||
   'http://localhost:8080';
+
+// Origines autorisées — côté serveur, jamais exposées au client
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+// Origines de développement toujours autorisées
+const DEV_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+
+function getAllowedOrigin(requestOrigin) {
+  if (!requestOrigin) return null;
+  const allowed = [...DEV_ORIGINS, ...ALLOWED_ORIGINS];
+  return allowed.includes(requestOrigin) ? requestOrigin : null;
+}
 
 async function proxyRequest(request, { params }) {
   const segments = (await params).path;
@@ -59,24 +77,28 @@ async function proxyRequest(request, { params }) {
         const fallbackUrl = `${BACKEND}/${subPath}${searchParams}`;
         const fallbackRes = await fetch(fallbackUrl, await getFetchOpts());
 
-        if (fallbackRes.status !== 404) {
+        if (fallbackRes.ok) {
           console.log(`[API Proxy] ✓ Success on root fallback: ${fallbackUrl}`);
           backendRes = fallbackRes;
         }
       }
-      // Log the backend error body for all 4xx/5xx responses
+      // Log uniquement le statut et le chemin — jamais le corps de la réponse (peut contenir des données sensibles)
       if (backendRes.status !== 404) {
-        const cloned = backendRes.clone();
-        cloned.text().then(body =>
-          console.error(`[API Proxy] ✗ ${backendRes.status} ${request.method} /api/${subPath} — Backend error: ${body}`)
-        ).catch(() => {});
+        console.error(`[API Proxy] ✗ ${backendRes.status} ${request.method} /api/${subPath}`);
       }
     }
 
     // Prepare response
     const responseHeaders = new Headers(backendRes.headers);
-    responseHeaders.set('Access-Control-Allow-Origin', '*');
-    
+
+    const requestOrigin = request.headers.get('origin');
+    const allowedOrigin = getAllowedOrigin(requestOrigin);
+    if (allowedOrigin) {
+      responseHeaders.set('Access-Control-Allow-Origin', allowedOrigin);
+      responseHeaders.set('Access-Control-Allow-Credentials', 'true');
+      responseHeaders.set('Vary', 'Origin');
+    }
+
     return new Response(backendRes.body, {
       status: backendRes.status,
       statusText: backendRes.statusText,
@@ -96,8 +118,29 @@ async function proxyRequest(request, { params }) {
   }
 }
 
-export const GET = proxyRequest;
-export const POST = proxyRequest;
-export const PUT = proxyRequest;
-export const PATCH = proxyRequest;
+export const GET    = proxyRequest;
+export const POST   = proxyRequest;
+export const PUT    = proxyRequest;
+export const PATCH  = proxyRequest;
 export const DELETE = proxyRequest;
+
+// Preflight CORS
+export function OPTIONS(request) {
+  const requestOrigin = request.headers.get('origin');
+  const allowedOrigin = getAllowedOrigin(requestOrigin);
+
+  if (!allowedOrigin) {
+    return new Response(null, { status: 403 });
+  }
+
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': allowedOrigin,
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Credentials': 'true',
+      'Vary': 'Origin',
+    },
+  });
+}

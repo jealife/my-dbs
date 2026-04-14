@@ -6,6 +6,7 @@ import { GlassCard } from '@/components/ui/glass-card'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth-hook'
+import { useStudentId } from '@/hooks/use-student-id'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { evaluationService } from '@/lib/evaluation-service'
 import { formatDateFr } from '@/lib/api-helpers'
@@ -49,7 +50,7 @@ export function ExamModuleView() {
     onError: (err) => toast.error(`Erreur: ${err.message}`),
   })
 
-  const studentId = user?.id || user?.userId
+  const studentId = useStudentId()
 
   // Fetch evaluations (scheduled/in-progress for upcoming, results_published for results)
   const { data: upcomingEvals = [], isLoading: loadingUpcoming } = useQuery({

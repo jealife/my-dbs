@@ -6,6 +6,7 @@ import com.mydbs.backend.auth.security.CustomUserDetails;
 import com.mydbs.backend.auth.security.JwtService;
 import com.mydbs.backend.auth.service.AuthService;
 import com.mydbs.backend.common.exception.InvalidCredentialsException;
+import com.mydbs.backend.student.repository.StudentRepository;
 import com.mydbs.backend.user.model.User;
 import com.mydbs.backend.user.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,13 +19,16 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
 
     public AuthServiceImpl(AuthenticationManager authenticationManager,
                            JwtService jwtService,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           StudentRepository studentRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.studentRepository = studentRepository;
     }
 
     @Override
@@ -50,6 +54,7 @@ public class AuthServiceImpl implements AuthService {
         response.setAccessToken(jwtToken);
         response.setTokenType("Bearer");
         response.setUserId(user.getId());
+        studentRepository.findByUserId(user.getId()).ifPresent(s -> response.setStudentId(s.getId()));
         response.setUserCode(user.getUserCode());
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());

@@ -43,7 +43,7 @@ export function Sidebar({ className }) {
         </span>
       </div>
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto no-scrollbar py-2 pr-1">
+      <nav aria-label="Navigation principale" className="flex-1 space-y-0.5 overflow-y-auto no-scrollbar py-2 pr-1">
         {loading ? (
           // Skeleton loader for sidebar items
           <div className="space-y-4 px-4 pt-10">
@@ -113,14 +113,15 @@ export function Sidebar({ className }) {
         </Link> */}
 
         <div className="grid grid-cols-2 gap-2">
-          <Link href="/settings" className="flex items-center justify-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-slate-400 hover:text-white" title="Paramètres">
-            <Settings className="w-4 h-4" />
+          <Link href="/settings" aria-label="Paramètres" className="flex items-center justify-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-slate-400 hover:text-white">
+            <Settings className="w-4 h-4" aria-hidden="true" />
           </Link>
           <button
             onClick={logout}
+            aria-label="Se déconnecter"
             className="flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-all group"
           >
-            <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" aria-hidden="true" />
           </button>
         </div>
       </div>

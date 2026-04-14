@@ -6,6 +6,7 @@ import { GlassCard } from '@/components/ui/glass-card'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth-hook'
+import { useStudentId } from '@/hooks/use-student-id'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { financeService } from '@/lib/finance-service'
 import { formatCurrency, formatDateFr } from '@/lib/api-helpers'
@@ -47,7 +48,7 @@ export function FinanceModuleView() {
   const [invoiceForm, setInvoiceForm] = useState({ studentId: '', description: '', amount: '', dueDate: '' })
   const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'CASH', reference: '' })
 
-  const studentId = user?.id || user?.userId
+  const studentId = useStudentId()
 
   const createInvoiceMutation = useMutation({
     mutationFn: () => financeService.createInvoice({

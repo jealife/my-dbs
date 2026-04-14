@@ -10,8 +10,8 @@ import Link from 'next/link'
 export default function AccesRefusePage() {
   const router = useRouter()
 
-  const handleLogout = () => {
-    authService.logout()
+  const handleLogout = async () => {
+    await authService.logout()
     router.replace('/login')
   }
 

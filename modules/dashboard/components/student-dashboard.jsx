@@ -16,6 +16,7 @@ import {
 import { motion } from 'framer-motion'
 import { GlassCard } from '@/components/ui/glass-card'
 import { useAuth } from '@/hooks/use-auth-hook'
+import { useStudentId } from '@/hooks/use-student-id'
 import { useQuery } from '@tanstack/react-query'
 import { courseService } from '@/lib/course-service'
 import { gradesService } from '@/lib/grades-service'
@@ -26,6 +27,7 @@ import Link from 'next/link'
 
 export function StudentDashboard({ user }) {
   const userId = user?.id || user?.userId
+  const studentId = useStudentId()
 
   // Fetch enrolled courses
   const { data: myCourses = [], isLoading: loadingCourses } = useQuery({
@@ -36,9 +38,9 @@ export function StudentDashboard({ user }) {
 
   // Fetch grade books
   const { data: gradeBooks = [], isLoading: loadingGrades } = useQuery({
-    queryKey: ['student-grades', userId],
-    queryFn: () => gradesService.getStudentGradeBooks(userId),
-    enabled: !!userId,
+    queryKey: ['student-grades', studentId],
+    queryFn: () => gradesService.getStudentGradeBooks(studentId),
+    enabled: !!studentId,
   })
 
   // Fetch today's agenda
@@ -60,9 +62,9 @@ export function StudentDashboard({ user }) {
 
   // Fetch attendance stats
   const { data: attendanceStats, isLoading: loadingAttendance } = useQuery({
-    queryKey: ['student-attendance-stats', userId],
-    queryFn: () => attendanceService.getStudentStats(userId),
-    enabled: !!userId,
+    queryKey: ['student-attendance-stats', studentId],
+    queryFn: () => attendanceService.getStudentStats(studentId),
+    enabled: !!studentId,
   })
 
   // Calculate average grade
@@ -125,7 +127,7 @@ export function StudentDashboard({ user }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-3 sm:gap-4">
-          <Link href="/academic">
+          <Link href="/records">
             <button className="px-6 py-3 rounded-2xl glass-card font-black text-xs uppercase tracking-widest hover:border-primary/50 transition-all border-(--glass-border)">
               Mon Bulletin
             </button>

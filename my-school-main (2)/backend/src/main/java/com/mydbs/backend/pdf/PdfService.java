@@ -136,8 +136,9 @@ public class PdfService {
                     .setPadding(12));
             doc.add(new Paragraph(" ").setFontSize(6));
 
-            List<GradeBook> gradeBooks = gradeBookRepository
-                    .findByStudentIdAndAcademicYearIdAndArchivedFalseOrderByCourseTitle(studentId, academicYearId);
+            List<GradeBook> gradeBooks = academicYearId != null
+                    ? gradeBookRepository.findByStudentIdAndAcademicYearIdAndArchivedFalseOrderByCourseTitle(studentId, academicYearId)
+                    : gradeBookRepository.findByStudentIdAndArchivedFalseOrderByCourseTitle(studentId);
 
             if (gradeBooks.isEmpty()) {
                 doc.add(new Paragraph("Aucune note disponible.").setFontSize(11));
